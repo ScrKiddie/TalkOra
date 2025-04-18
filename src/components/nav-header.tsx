@@ -1,5 +1,5 @@
 import {
-    ChevronsUpDown, Moon, Plus,
+    ChevronsUpDown, MailPlus, MessageCirclePlus, Moon, Plus,
     SquarePen, Sun, UserRound,
     UsersRound
 } from "lucide-react"
@@ -22,6 +22,8 @@ import {useTheme} from "@/components/theme-provider.tsx";
 import {Button} from "@/components/ui/button.tsx";
 
 export function NavHeader() {
+    const {isMobile} = useSidebar()
+
     const {theme} = useTheme()
     return (
         <SidebarMenu>
@@ -29,18 +31,22 @@ export function NavHeader() {
                 <DropdownMenu>
                     <SidebarMenuButton
                         size="lg"
-                        className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                        className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground gap-2 hover:bg-transparent active:bg-transparent hover:text-inherit"
                     >
-                        <div
+
+                    <div
                             className="text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
-                            <Logo mode={theme} width={28} height={28}/>
+                            <Logo mode={theme} width={30} height={30}/>
                         </div>
                         <div className="grid flex-1 text-left text-sm leading-tight">
-                            <span className="truncate font-medium">TalkOra</span>
+                            <span className="truncate font-medium ">TalkOra</span>
                             <span className="truncate text-xs">Enjoy your talk</span>
                         </div>
+                        <Button className={`size-8`} variant="outline" size="icon">
+                            <MailPlus/>
+                        </Button>
                         <Button className={`size-8 flex justify-center items-center`} variant="outline" size="icon" >
-                            <SquarePen/>
+                            <MessageCirclePlus/>
                         </Button>
                     </SidebarMenuButton>
 

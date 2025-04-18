@@ -26,7 +26,7 @@ import {
     SidebarMenuItem,
     useSidebar,
 } from "@/components/ui/sidebar"
-import {useState} from "react";
+import {useEffect, useState} from "react";
 
 export function NavChat({
                             chats,
@@ -41,7 +41,6 @@ export function NavChat({
     const [activeIndex, setActiveIndex] = useState<number | null>(null)
     const [openMenuIndex, setOpenMenuIndex] = useState<number | null>(null)
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
-
     return (
         <SidebarGroup>
             {/*<SidebarGroupLabel>Pesan Terbaru</SidebarGroupLabel>*/}
@@ -68,7 +67,7 @@ export function NavChat({
                                       `}
                                 >
 
-                                    <Avatar className="h-8 w-8 rounded-lg">
+                                    <Avatar className="h-8 w-8 rounded-full " >
                                         <AvatarImage src={chat.avatar} alt={chat.name}/>
                                         <AvatarFallback className="rounded-lg">
                                             {chat.name[0].toUpperCase()}
@@ -83,7 +82,7 @@ export function NavChat({
                                     <DropdownMenuTrigger asChild>
                                         <SidebarMenuAction
                                             className={`absolute right-2 top-1/2 -translate-y-1/2 transition-opacity duration-200
-    ${(hoveredIndex === index || openMenuIndex === index)
+    ${((hoveredIndex === index || openMenuIndex === index)||isMobile)
                                                 ? "opacity-100"
                                                 : "opacity-0"}
   `}
