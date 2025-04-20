@@ -1,12 +1,7 @@
 "use client"
 
 import {
-    BadgeCheck,
-    Bell,
-    ChevronsUpDown, CircleUserRound,
-    CreditCard, DoorOpen, Lock,
-    LogOut,
-    Sparkles,
+    ChevronsUpDown, CircleUserRound, DoorOpen, Lock,
 } from "lucide-react"
 
 import {
@@ -30,7 +25,18 @@ import {
     useSidebar,
 } from "@/components/ui/sidebar"
 
-export function NavFooter() {
+export function NavFooter(
+    {
+        current,
+    }: {
+        current: {
+            name: string;
+            email: string;
+            avatar: string;
+        };
+    }
+
+) {
     const { isMobile } = useSidebar()
 
     return (
@@ -43,12 +49,12 @@ export function NavFooter() {
                             className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground gap-2"
                         >
                             <Avatar className="h-8 w-8 rounded-full">
-                                <AvatarImage src={"https://images.freeimages.com/images/large-previews/d1f/lady-avatar-1632967.jpg?fmt=webp&h=350"} alt={"user.name"} />
-                                <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                                <AvatarImage src={current.avatar} alt={current.name} />
+                                <AvatarFallback className="rounded-lg"> {current.name.toUpperCase()}</AvatarFallback>
                             </Avatar>
                             <div className="grid flex-1 text-left text-sm leading-tight">
-                                <span className="truncate font-semibold">{"Hilmi Raif"}</span>
-                                <span className="truncate text-xs">hilmiraif@gmail.com</span>
+                                <span className="truncate font-semibold">{current.name}</span>
+                                <span className="truncate text-xs">{current.email}</span>
                             </div>
                             <ChevronsUpDown className="ml-auto size-4" />
                         </SidebarMenuButton>

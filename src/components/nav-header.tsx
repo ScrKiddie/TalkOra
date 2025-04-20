@@ -1,29 +1,20 @@
 import {
-    ChevronsUpDown, MailPlus, MessageCirclePlus, Moon, Plus,
-    SquarePen, Sun, UserRound,
-    UsersRound
+    MailPlus, MessageCirclePlus
 } from "lucide-react"
 
 import {
     DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
-    useSidebar,
 } from "@/components/ui/sidebar"
 import Logo from "@/components/logo.tsx";
 import {useTheme} from "@/components/theme-provider.tsx";
 import {Button} from "@/components/ui/button.tsx";
 
 export function NavHeader() {
-    const {isMobile} = useSidebar()
-
     const {theme} = useTheme()
     return (
         <SidebarMenu>
@@ -33,7 +24,6 @@ export function NavHeader() {
                         size="lg"
                         className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground gap-2 hover:bg-transparent active:bg-transparent hover:text-inherit"
                     >
-
                     <div
                             className="text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
                             <Logo mode={theme} width={30} height={30}/>
@@ -49,7 +39,6 @@ export function NavHeader() {
                             <MessageCirclePlus/>
                         </Button>
                     </SidebarMenuButton>
-
                 </DropdownMenu>
             </SidebarMenuItem>
         </SidebarMenu>

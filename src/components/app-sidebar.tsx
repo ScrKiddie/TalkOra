@@ -3,9 +3,8 @@ import { NavChat } from "@/components/nav-chat.tsx"
 import { NavHeader } from "@/components/nav-header.tsx"
 import {
   Sidebar,
-  SidebarContent, SidebarFooter, SidebarGroupLabel,
-  SidebarHeader, SidebarInput,
-  SidebarRail,
+  SidebarContent, SidebarFooter,
+  SidebarHeader
 } from "@/components/ui/sidebar"
 import {NavFooter} from "@/components/nav-footer.tsx";
 
@@ -28,6 +27,11 @@ const chats = [
   },
 ]
 
+const current = {
+    name: "Hilmi Raif",
+    avatar: "https://images.freeimages.com/images/large-previews/d1f/lady-avatar-1632967.jpg?fmt=webp&h=350",
+    email: "hilmiraif@gmail.com",
+}
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
@@ -39,11 +43,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarContent className="bg-background">
         <NavChat chats={chats} />
       </SidebarContent>
-
       <SidebarFooter className="border-t bg-background">
-          <NavFooter />
+          <NavFooter current={current} />
       </SidebarFooter>
-        <SidebarRail />
+        {/*<SidebarRail />*/}
     </Sidebar>
   )
 }

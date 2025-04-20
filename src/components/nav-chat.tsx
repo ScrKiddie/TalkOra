@@ -19,14 +19,14 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
-    SidebarGroup, SidebarGroupLabel,
+    SidebarGroup,
     SidebarMenu,
     SidebarMenuAction,
     SidebarMenuButton,
     SidebarMenuItem,
     useSidebar,
 } from "@/components/ui/sidebar"
-import {useEffect, useState} from "react";
+import {useState} from "react";
 
 export function NavChat({
                             chats,
@@ -43,7 +43,6 @@ export function NavChat({
     const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
     return (
         <SidebarGroup>
-            {/*<SidebarGroupLabel>Pesan Terbaru</SidebarGroupLabel>*/}
             <SidebarMenu>
                 {chats.map((chat, index) => (
                     <SidebarMenuItem key={index}>
@@ -90,9 +89,7 @@ export function NavChat({
                                             <EllipsisVertical/>
                                         </SidebarMenuAction>
                                     </DropdownMenuTrigger>
-
                                 </SidebarMenuButton>
-
                                 <DropdownMenuContent
                                     className="w-fit rounded-lg"
                                     side={isMobile ? "bottom" : "right"}
