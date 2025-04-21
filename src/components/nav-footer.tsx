@@ -37,8 +37,6 @@ export function NavFooter(
     }
 
 ) {
-    const { isMobile } = useSidebar()
-
     return (
         <SidebarMenu>
             <SidebarMenuItem>
@@ -61,22 +59,10 @@ export function NavFooter(
                     </DropdownMenuTrigger>
                     <DropdownMenuContent
                         className="w-[--radix-dropdown-menu-trigger-width] w-fit rounded-lg"
-                        side={isMobile ? "bottom" : "right"}
+                        side={"bottom"}
                         align="end"
                         sideOffset={4}
                     >
-                        <DropdownMenuLabel className="p-0 font-normal">
-                            {/*<div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">*/}
-                            {/*    <Avatar className="h-8 w-8 rounded-lg">*/}
-                            {/*        <AvatarImage src={"https://images.freeimages.com/images/large-previews/d1f/lady-avatar-1632967.jpg?fmt=webp&h=350"} alt={"user.name"} />*/}
-                            {/*        <AvatarFallback className="rounded-lg">CN</AvatarFallback>*/}
-                            {/*    </Avatar>*/}
-                            {/*    <div className="grid flex-1 text-left text-sm leading-tight">*/}
-                            {/*        <span className="truncate font-semibold">{"Hilmi Raif"}</span>*/}
-                            {/*        <span className="truncate text-xs">hilmiraif@gmail.com</span>*/}
-                            {/*    </div>*/}
-                            {/*</div>*/}
-                        </DropdownMenuLabel>
                         <DropdownMenuGroup>
                             <DropdownMenuItem>
                                 <CircleUserRound />

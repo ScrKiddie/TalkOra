@@ -3,9 +3,11 @@ import { ThemeProvider } from "@/components/theme-provider";
 import Chat from "@/pages/chat";
 import Login from "@/pages/login";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import {SidebarProvider} from "@/components/ui/sidebar.tsx";
 
 function App() {
     return (
+        <SidebarProvider>
         <ThemeProvider>
             <Router>
                 <Routes>
@@ -14,6 +16,7 @@ function App() {
                 </Routes>
             </Router>
         </ThemeProvider>
+            </SidebarProvider>
     );
 }
 

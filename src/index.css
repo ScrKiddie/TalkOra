@@ -119,4 +119,28 @@
   body {
     @apply bg-background text-foreground;
   }
+  button:not([disabled]),
+  [role="button"]:not([disabled]) {
+    cursor: pointer;
+  }
+  div[data-slot="dropdown-menu-item"]:hover {
+    cursor: pointer !important;
+  }
 }
+
+@media (hover: hover) and (pointer: fine) {
+  ::-webkit-scrollbar {
+    @apply w-2.5 h-2.5;
+
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-border border-[1px] border-transparent border-solid bg-clip-padding;
+  }
+}
+
+

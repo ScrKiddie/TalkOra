@@ -52,6 +52,7 @@ export function NavChat({
                             onMouseLeave={() => setHoveredIndex(null)}
                         >
                             <DropdownMenu
+
                                 onOpenChange={(open) => {
                                     setOpenMenuIndex(open ? index : null)
                                 }}
@@ -78,7 +79,7 @@ export function NavChat({
                       {chat.message}
                     </span>
                                     </div>
-                                    <DropdownMenuTrigger asChild>
+                                    <DropdownMenuTrigger asChild >
                                         <SidebarMenuAction
                                             className={`absolute right-2 top-1/2 -translate-y-1/2 transition-opacity duration-200
     ${((hoveredIndex === index || openMenuIndex === index)||isMobile)
@@ -92,15 +93,15 @@ export function NavChat({
                                 </SidebarMenuButton>
                                 <DropdownMenuContent
                                     className="w-fit rounded-lg"
-                                    side={isMobile ? "bottom" : "right"}
-                                    align={isMobile ? "end" : "start"}
+                                    side={isMobile ? "left" : "right"}
+                                    align={"center"}
                                 >
 
-                                    <DropdownMenuItem>
-                                        <CircleCheckBig className="text-muted-foreground"/>
-                                        <span>Read Chat</span>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuSeparator/>
+                                    {/*<DropdownMenuItem>*/}
+                                    {/*    <CircleCheckBig className="text-muted-foreground"/>*/}
+                                    {/*    <span>Read Chat</span>*/}
+                                    {/*</DropdownMenuItem>*/}
+                                    {/*<DropdownMenuSeparator/>*/}
                                     <DropdownMenuItem>
                                         <Trash2 className="text-muted-foreground"/>
                                         <span>Delete Chat</span>

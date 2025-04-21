@@ -35,9 +35,9 @@ export function NavHeader() {
                         <Button className={`size-8`} variant="outline" size="icon">
                             <MailPlus/>
                         </Button>
-                        <Button className={`size-8 flex justify-center items-center`} variant="outline" size="icon" >
-                            <MessageCirclePlus/>
-                        </Button>
+                        {/*<Button className={`size-8 flex justify-center items-center`} variant="outline" size="icon" >*/}
+                        {/*    <MessageCirclePlus/>*/}
+                        {/*</Button>*/}
                     </SidebarMenuButton>
                 </DropdownMenu>
             </SidebarMenuItem>
