@@ -8,16 +8,19 @@ import {
     CheckCheck, CircleCheckBig,
     EllipsisVertical,
     Forward,
-    LoaderCircle,
+    LoaderCircle, Paperclip, Pen,
     Reply,
     SendHorizonal,
-    Smile,
+    Smile, SquarePen,
     Trash, Trash2, X
 } from "lucide-react";
 import {Avatar, AvatarFallback, AvatarImage} from "@radix-ui/react-avatar";
 import {Textarea} from "@/components/ui/textarea.tsx";
-import {useEffect, useRef, useState} from "react";
+import {ReactNode, useEffect, useRef, useState} from "react";
 import {Card} from "@/components/ui/card.tsx";
+import {Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle} from "@/components/ui/dialog.tsx";
+
+
 
 const Chat = () => {
     const currentUserId = 1;
@@ -143,6 +146,37 @@ const Chat = () => {
 
     const [replyTo, setReplyTo] = useState<null | { id: number; name: string; message: string }>(null);
 
+    const [editMessage, setEditMessage] = useState<null | { id: number; text: string }>(null);
+
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [messageToDelete, setMessageToDelete] = useState<number | null>(null);
+
+    const handleDeleteMessage = () => {
+        if (messageToDelete !== null) {
+            setMessages((prev) => prev.filter((msg) => msg.id !== messageToDelete));
+            setShowDeleteModal(false);
+            setMessageToDelete(null);
+        }
+    };
+    const messageRefs = useRef<Record<number, HTMLDivElement | null>>({});
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (showDeleteModal) return;
+            if (activeMessageId !== null) {
+                const ref = messageRefs.current[activeMessageId];
+                if (ref && !ref.contains(event.target as Node)) {
+                    setActiveMessageId(null);
+                }
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [activeMessageId, showDeleteModal]);
+
+
 
     return (
         <>
@@ -181,9 +215,10 @@ const Chat = () => {
                                     return (
                                         <div
                                             key={message.id}
+
                                             className={`flex ${isCurrentUser ? "justify-end" : "justify-start"}`}
                                         >
-                                            <div className="group flex gap-2 items-end" onClick={message.userId !== currentUserId ? () => handleClick(message.id) : () => {}}
+                                            <div ref={(el) => (messageRefs.current[message.id] = el)} className="group flex gap-2 items-end" onClick={() => handleClick(message.id)}
                                             >
 
                                             {!isCurrentUser && isGroup && (
@@ -196,24 +231,77 @@ const Chat = () => {
                                                 )}
                                                     {isCurrentUser && (
                                                         <div
-                                                            className="self-stretch shrink-0 size-10 flex h-full items-center justify-center group"
+                                                            className="self-stretch shrink-0 size-14 flex h-full items-center justify-center group"
                                                         >
-                                                            {/*<Button*/}
-                                                            {/*    size={"icon"}*/}
-                                                            {/*    className={`*/}
-                                                            {/*    size-fit p-[6px] bg-foreground border rounded-full*/}
-                                                            {/*    hidden*/}
-                                                            {/*    group-hover:flex */}
-                                                            {/*    ${activeMessageId === message.id && 'flex'}*/}
-                                                            {/*`}*/}
-                                                            {/*                                                        >*/}
-                                                            {/*    <Trash className="text-background size-4" />*/}
-                                                            {/*</Button>*/}
+                                                            <Button
+                                                                size={"icon"}
+                                                                className={`
+                                                                size-fit p-[6px] bg-foreground border rounded-full
+                                                                hidden
+                                                                group-hover:flex 
+                                                                ${activeMessageId === message.id && 'flex'}
+                                                            `} onClick={() => {
+                                                                setEditMessage(null);
+                                                                if (textareaRef.current) {
+                                                                    textareaRef.current.value = "";
+                                                                    textareaRef.current.focus();
+                                                                }
+                                                                setReplyTo({
+                                                                    id: message.id,
+                                                                    name: message.name,
+                                                                    message: message.text
+                                                                });
+                                                            }}
+
+                                                            >
+                                                                <Reply className="text-background size-4" />
+                                                            </Button>
+                                                            <div className="group flex flex-col gap-1 pr-1 items-center ">
+                                                                <Button
+                                                                    size={"icon"}
+                                                                    className={`
+                                                                size-fit p-[6px] bg-foreground border rounded-full
+                                                                hidden
+                                                                group-hover:flex 
+                                                                ${activeMessageId === message.id && 'flex'}
+                                                            `}
+                                                                    onClick={() => {
+                                                                        setReplyTo(null);
+                                                                        setEditMessage({ id: message.id, text: message.text });
+                                                                        setMessage(message.text);
+                                                                        if (textareaRef.current) {
+                                                                            textareaRef.current.value = message.text;
+                                                                            textareaRef.current.focus();
+                                                                        }
+                                                                    }}
+
+
+                                                                >
+                                                                    <SquarePen className="text-background size-4" />
+                                                                </Button>
+                                                                <Button
+                                                                    size={"icon"}
+                                                                    className={`
+                                                                size-fit p-[6px] bg-foreground border rounded-full
+                                                                hidden
+                                                                group-hover:flex 
+                                                                ${activeMessageId === message.id && 'flex'}
+                                                            `}
+                                                                    onClick={() => {
+                                                                        setMessageToDelete(message.id);
+                                                                        setShowDeleteModal(true);
+                                                                    }}
+                                                                >
+                                                                    <Trash2 className="text-background size-4" />
+                                                                </Button>
+                                                            </div>
+
+
                                                         </div>
 
                                                     )}
                                                     <div
-                                                        className={`p-[10px] rounded-md border flex flex-col gap-[4px] ${
+                                                        className={`p-[10px] rounded-md border flex flex-col gap-2 ${
                                                             isCurrentUser
                                                                 ? "bg-foreground text-background"
                                                                 : "bg-background  text-foreground"
@@ -234,9 +322,10 @@ const Chat = () => {
                                                             </Card>
                                                         }
                                                         <p className="text-sm">{message.text}</p>
-                                                        <div className="flex justify-end w-full items-end gap-1">
+                                                        <div className="flex justify-end w-full items-center gap-2">
+                                                            {message.updatedAt && <Pen className="size-3"/>}
                                                             <p
-                                                                className={`text-xs line mt-2 text-right ${
+                                                                className={`text-xs line  text-right ${
                                                                     isCurrentUser ? "text-background" : "text-primary"
                                                                 }`}
                                                             >
@@ -258,13 +347,19 @@ const Chat = () => {
                                                                 group-hover:flex 
                                                                 ${activeMessageId === message.id && 'flex'}
                                                             `}
-                                                                onClick={() =>
+                                                                onClick={() => {
+                                                                    setEditMessage(null);
+                                                                    if (textareaRef.current) {
+                                                                        textareaRef.current.value = "";
+                                                                        textareaRef.current.focus();
+                                                                    }
                                                                     setReplyTo({
                                                                         id: message.id,
                                                                         name: message.name,
                                                                         message: message.text
-                                                                    })
-                                                                }
+                                                                    });
+                                                                }}
+
                                                             >
                                                                 <Reply className="text-foreground size-4"/>
                                                             </Button>
@@ -288,10 +383,13 @@ const Chat = () => {
                             <div className={"flex flex-col  w-full gap-2"}>
                                 {replyTo && (<div className={"flex justify-between items-center w-full gap-2 "}>
 
-                                        <Card className={"w-full flex-1 rounded-md gap-1 p-2 shadow-none border-l-6 border-foreground"}>
+                                        <Card className={"w-full flex-1 rounded-md gap-1 p-2 shadow-none bg-muted/60"}>
                                             <div className={"flex justify-between items-center w-full gap-2"}>
                                                 <p className="text-sm font-[500]">Reply to {replyTo.name}</p>
-                                                <X className="size-4 hover:cursor-pointer" onClick={() => setReplyTo(null)} />
+                                                <Button size={"icon"} variant={"ghost"} className={"size-6"} onClick={() => setReplyTo(null)}>
+                                                    <X className="size-4 hover:cursor-pointer"  />
+                                                </Button>
+
                                             </div>
                                             <p className="text-sm">{replyTo.message}</p>
                                         </Card>
@@ -299,9 +397,31 @@ const Chat = () => {
 
 
                                 </div>)}
+                                {editMessage && (
+                                    <div className="flex justify-between items-center w-full gap-2">
+                                        <Card className="w-full flex-1 rounded-md gap-1 p-2 shadow-none bg-muted/60">
+                                            <div className="flex justify-between items-center w-full gap-2">
+                                                <p className="text-sm font-[500]">Edit Message</p>
+                                                <Button size={"icon"} variant={"ghost"} className={"size-6"} onClick={() => {
+                                                    setEditMessage(null)
+                                                    if (textareaRef.current) {
+                                                        textareaRef.current.value = "";
+                                                        textareaRef.current.focus();
+                                                    }
+                                                }}>
+                                                    <X className="size-4 hover:cursor-pointer"  />
+                                                </Button>
+                                            </div>
+                                            <p className="text-sm">{editMessage.text}</p>
+                                        </Card>
+                                    </div>
+                                )}
                                 <div
                                     className="flex items-center  outline-1 dark:outline-[#212224] outline-[#e4e4e7] z-50 rounded-md gap-2 p-2 h-full bg-background w-full">
                                     <div>
+                                        <Button size="icon" variant="ghost">
+                                            <Paperclip className="size-5"/>
+                                        </Button>
                                         <Button size="icon" variant="ghost">
                                             <Smile className="size-5"/>
                                         </Button>
@@ -313,15 +433,30 @@ const Chat = () => {
                                     />
                                     <Button size="icon" variant="ghost" onClick={(e) => {
                                         e.preventDefault();
-
                                         if (message.trim() === "") return;
+
+                                        if (editMessage) {
+                                            setMessages((prev) =>
+                                                prev.map((msg) =>
+                                                    msg.id === editMessage.id
+                                                        ? { ...msg, text: message, updatedAt: new Date().toISOString() }
+                                                        : msg
+                                                )
+                                            );
+                                            setEditMessage(null);
+                                            setMessage("");
+                                            if (textareaRef.current) {
+                                                textareaRef.current.value = "";
+                                                textareaRef.current.focus();
+                                            }
+                                            return;
+                                        }
 
                                         const newMessage = {
                                             id: messages.length + 1,
                                             userId: currentUserId,
                                             name: "You",
-                                            avatar:
-                                                "https://images.freeimages.com/images/large-previews/d1f/lady-avatar-1632967.jpg?fmt=webp&h=350",
+                                            avatar: "https://images.freeimages.com/images/large-previews/d1f/lady-avatar-1632967.jpg?fmt=webp&h=350",
                                             text: message,
                                             time: new Date().toLocaleTimeString([], {
                                                 hour: "2-digit",
@@ -339,13 +474,10 @@ const Chat = () => {
                                         setMessages((prev) => [...prev, newMessage]);
                                         setMessage("");
                                         setReplyTo(null);
-
-
                                         if (textareaRef.current) {
                                             textareaRef.current.value = "";
                                             textareaRef.current.focus();
                                         }
-
                                     }}>
                                         <SendHorizonal className="size-5" />
                                     </Button>
@@ -353,6 +485,25 @@ const Chat = () => {
                             </div>
                         </div>
                     </footer>
+                    <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
+                        <DialogContent  className="[&>button]:hidden" onInteractOutside={(e) => e.preventDefault()}>
+                            <DialogHeader>
+                                <DialogTitle>Do you want to delete this message?</DialogTitle>
+                                <DialogDescription>
+                                    This will delete it for everyone in this chat.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <DialogFooter>
+                                <Button variant={"outline"} onClick={()=>setShowDeleteModal(false)}>
+                                    Cancel
+                                </Button>
+                                <Button onClick={handleDeleteMessage}>
+                                    Delete
+                                </Button>
+                            </DialogFooter>
+
+                        </DialogContent>
+                    </Dialog>
                 </div>
             </SidebarInset>
         </>
