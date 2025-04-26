@@ -3,7 +3,7 @@ import {SidebarInset} from "@/components/ui/sidebar.tsx";
 import {Button} from "@/components/ui/button.tsx";
 import {
     CheckCheck, Download,
-    DownloadCloud,
+    DownloadCloud, Eraser,
     FileArchiveIcon,
     FileAudioIcon,
     FileCodeIcon,
@@ -20,7 +20,8 @@ import {
     SquarePen,
     Trash2,
     Upload,
-    X
+    Shredder,
+    X, File
 } from "lucide-react";
 import {Avatar, AvatarFallback, AvatarImage} from "@radix-ui/react-avatar";
 import {Textarea} from "@/components/ui/textarea.tsx";
@@ -48,12 +49,6 @@ import * as React from "react";
 import {toast, Toaster} from "sonner";
 import {GridBackgrounds} from "@/pages/login.tsx";
 
-
-interface Reply {
-    name: string;
-    text: string;
-}
-
 interface Attachment {
     src: string;
     name: string;
@@ -68,9 +63,17 @@ interface Message {
     avatar: string;
     text: string;
     time: string;
-    replyTo?: Reply;
+    replyTo?: Message;
     attachment?: Attachment[];
     updatedAt: number;
+}
+
+interface EditAttachment extends Attachment {
+    delete: boolean;
+}
+
+interface EditMessage extends Omit<Message, 'attachment'> {
+    attachment?: EditAttachment[];
 }
 
 interface Chat {
@@ -113,7 +116,7 @@ const Chat = () => {
                 size:"1024",
             },{
                 src:"https://images.freeimages.com/images/large-previews/d1f/lady-avatar-1632967.jpg?fmt=webp&h=350",
-                name:"chat.cpp",
+                name:"chaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaat.cpp",
                 type:"",
                 size:"1024",
             },{
@@ -129,7 +132,7 @@ const Chat = () => {
             userId: 1,
             name: "You",
             avatar: "https://images.freeimages.com/images/large-previews/d1f/lady-avatar-1632967.jpg?fmt=webp&h=350",
-            text: "Hai Steven! Apa kabar? 😄",
+            text: "chaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaatchaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaatchaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaat",
             time: "10:06 AM",
             replyTo: {
                 name: "Steven William",
@@ -138,6 +141,11 @@ const Chat = () => {
             attachment:[{
                 src:"https://images.freeimages.com/images/large-previews/d1f/lady-avatar-1632967.jpg?fmt=webp&h=350",
                 name:"chat.cpp",
+                type:"image/jpg",
+                size:"1024",
+            },{
+                src:"https://images.freeimages.com/images/large-previews/d1f/lady-avatar-1632967.jpg?fmt=webp&h=350",
+                name:"chaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaat.cpp",
                 type:"",
                 size:"1024",
             },{
@@ -156,8 +164,8 @@ const Chat = () => {
         setActiveMessageId(messageId);
     };
 
-    const [replyTo, setReplyTo] = useState<null | { id: number; name: string; text: string }>(null);
-    const [editMessage, setEditMessage] = useState<null | { id: number; text: string }>(null);
+    const [replyTo, setReplyTo] = useState<null | Message>(null);
+    const [editMessage, setEditMessage] = useState<null | EditMessage>(null);
 
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [messageToDelete, setMessageToDelete] = useState<number | null>(null);
@@ -186,6 +194,7 @@ const Chat = () => {
         if (messageToDelete !== null) {
             if (messageToDelete == editMessage?.id) {
                 setEditMessage(null);
+                setAttachmentMode(false)
                 if (textareaRef.current) {
                     textareaRef.current.value = "";
                     textareaRef.current.focus();
@@ -237,18 +246,18 @@ const Chat = () => {
         const extension = file.name.split(".").pop()?.toLowerCase() ?? "";
 
         if (file.type.startsWith("video/")) {
-            return <FileVideoIcon />;
+            return <FileVideoIcon size={28} />;
         }
 
         if (file.type.startsWith("audio/")) {
-            return <FileAudioIcon />;
+            return <FileAudioIcon size={28} />;
         }
 
         if (
             file.type.startsWith("text/") ||
             ["txt", "md", "rtf", "pdf"].includes(extension)
         ) {
-            return <FileTextIcon />;
+            return <FileTextIcon size={28} />;
         }
 
         if (
@@ -270,7 +279,7 @@ const Chat = () => {
                 "cs",
             ].includes(extension)
         ) {
-            return <FileCodeIcon />;
+            return <FileCodeIcon size={28} />;
         }
 
         if (["zip", "rar", "7z", "tar", "gz", "bz2"].includes(extension)) {
@@ -284,16 +293,16 @@ const Chat = () => {
             return <FileCogIcon />;
         }
 
-        return <FileIcon />;
+        return <FileIcon size={28} />;
     }
 
 
-    function renderFilePreview(file: Attachment, isSender:boolean=true) {
+    function renderFilePreview(file: Attachment, isSender:boolean=true, isEditMode=false,onClick=()=>{}) {
         if (!file) return null;
 
         const isImage = file.type?.startsWith("image/");
 
-        if (isImage) {
+        if (isImage && !isEditMode) {
             return (
                 <img
                     src={file.src}
@@ -306,29 +315,46 @@ const Chat = () => {
         return (
             <Card
                 variant={isSender ? "revert" : undefined}
-                className={`h-fit-fit w-full p-3 rounded-md shadow-none flex justify-between flex-row items-center ${isSender ? '' : 'bg-background border'}`}
+                className={`gap-[10px] h-fit-fit w-full p-3 rounded-md shadow-none flex justify-between flex-row items-center ${isSender ? '' : 'bg-background border'}`}
             >
-                <div className="flex items-center justify-start gap-2 w-fit">
-                    <div className={`w-fit p-2 rounded-md ${isSender ? 'bg-[#17171a] dark:bg-[#f9f9f9]' : 'dark:bg-[#17171a] bg-[#f9f9f9]'}`}>
-                        {getFileIconFromData(file)}
-                    </div>
-                    <div className={`flex flex-col text-sm ${isSender ? 'text-background' : 'text-foreground'}`}>
-                        <p className="font-[450]">{file.name}</p>
-                        <p className={`text-xs ${isSender ? 'dark:text-[#717883] text-[#969fa9]' : 'text-[#717883] dark:text-[#969fa9]'}`}>{file.size} KB</p>
+                <div className="flex items-center justify-start gap-[10px] w-fit">
+                    {isImage ? (
+                        <div className={`size-[40px] flex items-center justify-center rounded-md ${isSender ? 'bg-[#17171a] dark:bg-[#f9f9f9]' : 'dark:bg-[#17171a] bg-[#f9f9f9]'}`}>
+                            <img
+                                src={file.src}
+                                alt={file.name}
+                                className="size-full rounded object-cover"
+                            />
+                        </div>
+                    ):(
+                        <div className={`size-[40px] flex items-center justify-center rounded-md ${isSender ? 'bg-[#17171a] dark:bg-[#f9f9f9]' : 'dark:bg-[#17171a] bg-[#f9f9f9]'}`}>
+                            {getFileIconFromData(file)}
+                        </div>
+                    )
+                    }
+                    <div className={`flex flex-1 flex-col ${isSender ? 'text-background' : 'text-foreground'}`}>
+                        <p className="line-clamp-1 font-medium text-sm">{file.name}</p>
+                        <p className={`text-muted-foreground truncate  text-xs`}>{file.size} KB</p>
                     </div>
                 </div>
                 <Button
-                    className={`rounded-md size-fit p-2 ${isSender ? 'bg-foreground border dark:border-[#e4e4e7] border-[#212224]' : 'bg-background border'}`}
-                    variant={isSender ? undefined : "ghost"}
+                    className={`size-7 rounded-md size-[28px] border-none`}
+                    variant={isSender ? "ghostRevert" : "ghost"}
                     size="icon"
+                    onClick={
+                        onClick
+                    }
                 >
-                    <Download className={`size-4 ${isSender ? 'text-background' : 'text-foreground'}`} />
+                    {isEditMode ? (<X className={` ${isSender ? 'text-background' : 'text-foreground'}`} />) :(<Download className={` ${isSender ? 'text-background' : 'text-foreground'}`} />)}
                 </Button>
+
             </Card>
         );
 
     }
-
+    useEffect(() => {
+        console.log(editMessage);
+    }, [editMessage]);
 
     return (
         <>
@@ -366,15 +392,12 @@ const Chat = () => {
                                                                 if (editMessage){
                                                                     setEditMessage(null);
                                                                     setMessage("")
+                                                                    setAttachmentMode(false);
                                                                     if (textareaRef.current) {
                                                                         textareaRef.current.value = "";
                                                                         textareaRef.current.focus();
                                                                     }}
-                                                                setReplyTo({
-                                                                    id: message.id,
-                                                                    name: message.name,
-                                                                    text: message.text
-                                                                });
+                                                                setReplyTo(message);
                                                             }}
                                                         >
                                                             <Reply className="text-background size-4"/>
@@ -388,10 +411,14 @@ const Chat = () => {
                                                                     setAttachmentMode(false)
                                                                     setReplyTo(null);
                                                                     setMessage("")
-                                                                    setEditMessage({
-                                                                        id: message.id,
-                                                                        text: message.text
-                                                                    });
+                                                                    const editMessage = {
+                                                                        ...message,
+                                                                        attachment: message.attachment?.map(att => ({ ...att, delete: false })) ?? [],
+                                                                    };
+                                                                    setEditMessage(editMessage);
+                                                                    if (message.attachment && message.attachment?.length !=0) {
+                                                                        setAttachmentMode(true)
+                                                                    }
                                                                     setMessage(message.text);
                                                                     if (textareaRef.current) {
                                                                         textareaRef.current.value = message.text;
@@ -417,17 +444,25 @@ const Chat = () => {
                                                 <div
                                                     className={`p-[10px] rounded-md border flex flex-col gap-2 ${isCurrentUser ? "bg-foreground text-background" : "bg-background  text-foreground"}`}>
                                                     {!isCurrentUser && isGroup &&
-                                                        <p className="text-sm font-[500]">{message.name}</p>}
+                                                        <p className="text-sm font-[500] line-clamp-1">{message.name}</p>}
                                                     {message.replyTo &&
                                                         <Card variant={isCurrentUser ? "revert" : "default"}
                                                               className={`w-full flex-1 rounded-md gap-1 p-2 shadow-none border-l-6 `}>
                                                             <div
                                                                 className={"flex justify-between items-center w-full gap-2"}>
-                                                                <p className="text-sm font-[500] ">{message.replyTo.name}</p>
+                                                                <p className="text-sm font-[500] line-clamp-1">{message.replyTo.name}</p>
                                                             </div>
-                                                            <p className="text-sm">
-                                                                {message.replyTo.text}
+                                                            <p className="text-sm line-clamp-1">
+                                                                {message.replyTo?.text
+                                                                    ? message.replyTo.text
+                                                                    : (
+                                                                        message.replyTo?.attachment?.length
+                                                                            ? (message.replyTo.attachment.length > 1 ? `${message.replyTo.attachment.length} files` : 'File')
+                                                                            : ''
+                                                                    )
+                                                                }
                                                             </p>
+
                                                         </Card>
                                                     }
                                                     {message.attachment &&
@@ -458,15 +493,12 @@ const Chat = () => {
                                                                 if (editMessage){
                                                                     setEditMessage(null);
                                                                     setMessage("")
+                                                                    setAttachmentMode(false);
                                                                     if (textareaRef.current) {
                                                                         textareaRef.current.value = "";
                                                                         textareaRef.current.focus();
                                                                 }}
-                                                                setReplyTo({
-                                                                    id: message.id,
-                                                                    name: message.name,
-                                                                    text: message.text
-                                                                });
+                                                                setReplyTo(message);
                                                             }}>
                                                             <Reply className="text-foreground size-4"/>
                                                         </Button>
@@ -489,7 +521,7 @@ const Chat = () => {
                                     <div className="flex justify-between items-center w-full gap-2">
                                         <Card className="w-full flex-1 rounded-md gap-1 p-2 shadow-none bg-background ">
                                             <div className="flex justify-between items-center w-full gap-2">
-                                                <p className="text-sm font-[500]">{replyTo ? `Reply to ${replyTo.name}` : 'Edit Message'}</p>
+                                                <p className="text-sm font-[500] line-clamp-1">{replyTo ? `Reply to ${replyTo.name}` : 'Edit Message'}</p>
                                                 <Button
                                                     size="icon"
                                                     variant="ghost"
@@ -500,6 +532,8 @@ const Chat = () => {
                                                         } else if(editMessage) {
                                                             setMessage("")
                                                             setEditMessage(null)
+                                                            setAttachmentMode(false)
+                                                            setFiles([])
                                                             if (textareaRef.current) {
                                                                 textareaRef.current.value = '';
                                                                 textareaRef.current.focus();
@@ -510,10 +544,24 @@ const Chat = () => {
                                                     <X className="size-4 hover:cursor-pointer"/>
                                                 </Button>
                                             </div>
-                                            <p className="text-sm">{replyTo ? replyTo.text : editMessage?.text}</p>
+                                            <p className="text-sm line-clamp-1">
+                                                {replyTo?.text || editMessage?.text
+                                                    ? (replyTo?.text || editMessage?.text)
+                                                    : (
+                                                        (replyTo?.attachment?.length || editMessage?.attachment?.length)
+                                                            ? (
+                                                                (replyTo?.attachment?.length || editMessage?.attachment?.length) > 1
+                                                                    ? `${replyTo?.attachment?.length || editMessage?.attachment?.length} files`
+                                                                    : 'File'
+                                                            )
+                                                            : ''
+                                                    )
+                                                }
+                                            </p>
                                         </Card>
                                     </div>
                                 )}
+
                                 {attachmentMode && <div className="flex justify-between items-center w-full gap-2">
                                     <FileUpload.Root className={"w-full "}  value={files}
                                                      onValueChange={setFiles}
@@ -532,25 +580,43 @@ const Chat = () => {
                                                     Or click to browse
                                                 </p>
                                             </div>
-                                            {/*<FileUploadTrigger asChild>*/}
-                                            {/*    <Button variant="outline" size="sm" className="mt-2 w-fit">*/}
-                                            {/*        Browse files*/}
-                                            {/*    </Button>*/}
-                                            {/*</FileUploadTrigger>*/}
+
                                         </FileUpload.Dropzone>
-                                        <FileUploadList className={"overflow-auto max-h-[8.7rem] z-[51]"}>
-                                            {files.map((file, index) => (
-                                                <FileUploadItem key={index} value={file}>
-                                                    <FileUploadItemPreview />
-                                                    <FileUploadItemMetadata />
-                                                    <FileUploadItemDelete asChild>
-                                                        <Button variant="ghost" size="icon" className="size-7">
-                                                            <X />
-                                                        </Button>
-                                                    </FileUploadItemDelete>
-                                                </FileUploadItem>
-                                            ))}
-                                        </FileUploadList>
+                                        <div className={`overflow-auto max-h-[8.7rem] z-[51] gap-[8px] flex-col flex ${(files?.length == 0 ? (editMessage ? (editMessage.attachment?.length == 0 ? "hidden" : (editMessage?.attachment?.some(item => !item.delete) ? "" : "hidden")) : "hidden") : '')}`}>
+                                            {editMessage && editMessage.attachment && (
+                                                editMessage.attachment.map((item, index) => (
+                                                    item && !item.delete && (
+                                                        <div key={index}>
+                                                            {renderFilePreview(item, false, true, () => {
+                                                                const updatedAttachments = editMessage.attachment?.map((att, idx) => {
+                                                                    if (idx === index) {
+                                                                        return { ...att, delete: true };
+                                                                    }
+                                                                    return att;
+                                                                }) ?? editMessage?.attachment;
+                                                                setEditMessage({ ...editMessage, attachment: updatedAttachments });
+                                                            })}
+                                                        </div>
+                                                    )
+                                                ))
+                                            )}
+
+                                            <FileUploadList >
+                                                {files.map((file, index) => (
+                                                    <FileUploadItem key={index} value={file}>
+                                                        <FileUploadItemPreview />
+                                                        <FileUploadItemMetadata />
+
+                                                        <FileUploadItemDelete asChild>
+                                                            <Button variant="ghost" size="icon" className="size-7">
+                                                                <X />
+                                                            </Button>
+                                                        </FileUploadItemDelete>
+                                                    </FileUploadItem>
+                                                ))}
+                                            </FileUploadList>
+                                        </div>
+
                                         {/*<FileUpload.Clear />*/}
                                     </FileUpload.Root>
                                 </div>}
@@ -558,12 +624,22 @@ const Chat = () => {
                                     className="flex items-center  outline-1 dark:outline-[#212224] outline-[#e4e4e7] z-50 rounded-md gap-2 p-2 h-full bg-background w-full">
                                     <div>
                                         <Button size="icon" variant="ghost" onClick={() => {
-                                            setAttachmentMode((prev) => !prev)
-                                            if (!attachmentMode){
-                                                setFiles([])
+                                            setAttachmentMode((prev) => !prev);
+                                            if (!attachmentMode) {
+                                                setFiles([]);
+                                                if (editMessage) {
+                                                    const updatedEditMessage = {
+                                                        ...editMessage,
+                                                        attachment: editMessage.attachment?.map((att) => ({
+                                                            ...att,
+                                                            delete: true,
+                                                        })) ?? [],
+                                                    };
+                                                    setEditMessage(updatedEditMessage);
+                                                }
                                             }
                                         }}>
-                                            {attachmentMode ? <X className="size-5"/> : <Paperclip className="size-5"/>}
+                                            {attachmentMode ? <Shredder className="size-5"/> : <File className="size-5"/>}
                                         </Button>
                                         <Button size="icon" variant="ghost">
                                             <Smile className="size-5"/>
@@ -591,6 +667,7 @@ const Chat = () => {
                                                 textareaRef.current.value = "";
                                                 textareaRef.current.focus();
                                             }
+                                            setAttachmentMode(false)
                                             return;
                                         }
 
@@ -605,15 +682,10 @@ const Chat = () => {
                                                 hour: "2-digit",
                                                 minute: "2-digit",
                                             }),
-                                            ...(replyTo && {
-                                                replyTo: {
-                                                    id: replyTo.id,
-                                                    name: replyTo.name,
-                                                    text: replyTo.text
-                                                }
-                                            })
-                                        };
+                                            ...(replyTo && { replyTo })
 
+                                        };
+                                        console.log(newMessage);
                                         setMessages((prev) => [...prev, newMessage]);
                                         setMessage("");
                                         setReplyTo(null);
