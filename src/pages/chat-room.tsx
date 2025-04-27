@@ -2,26 +2,16 @@ import {AppSidebar} from "@/components/app-sidebar.tsx";
 import {SidebarInset} from "@/components/ui/sidebar.tsx";
 import {Button} from "@/components/ui/button.tsx";
 import {
-    CheckCheck, Download,
-    DownloadCloud, Eraser,
-    FileArchiveIcon,
-    FileAudioIcon,
-    FileCodeIcon,
-    FileCogIcon,
-    FileIcon,
-    FileTextIcon,
-    FileVideoIcon,
+    CheckCheck,
     LoaderCircle,
-    Paperclip,
     Pen,
     Reply,
     SendHorizonal,
     Smile,
-    SquarePen,
     Trash2,
     Upload,
     Shredder,
-    X, File
+    X, File, Check
 } from "lucide-react";
 import {Avatar, AvatarFallback, AvatarImage} from "@radix-ui/react-avatar";
 import {Textarea} from "@/components/ui/textarea.tsx";
@@ -38,51 +28,78 @@ import {
 import ChatHeader from "@/components/chat-header.tsx";
 import * as FileUpload from "@/components/ui/file-upload";
 import {
-    FileUploadDropzone,
     FileUploadItem, FileUploadItemDelete,
     FileUploadItemMetadata,
     FileUploadItemPreview,
     FileUploadList,
-    FileUploadTrigger
 } from "@/components/ui/file-upload";
 import * as React from "react";
-import {toast, Toaster} from "sonner";
-import {GridBackgrounds} from "@/pages/login.tsx";
+import {Toaster} from "sonner";
+import {Chat, ChatType} from "@/types/chatTypes.tsx";
+import {Message, EditMessage} from "@/types/messageTypes.tsx";
+import AttachmentCard from "@/components/attachment-card.tsx";
 
-interface Attachment {
-    src: string;
-    name: string;
-    type: string;
-    size: string;
-}
+const privateChat: Chat = {
+    id: 1,
+    createdAt: Date.now(),
+    type: ChatType.PrivateChat,
+    privateChat: {
+        type: ChatType.PrivateChat,
+        participants: [
+            {
+                id: 1,
+                name: 'Alice',
+                profilePicture: 'https://images.freeimages.com/images/large-previews/fdd/man-avatar-1632964.jpg?fmt=webp&h=500',
+                phoneNumber: '123-456-7890',
+                email: 'alice@example.com',
+                about: 'A passionate developer.'
+            },
+            {
+                id: 2,
+                name: 'Bob',
+                profilePicture: 'https://images.freeimages.com/images/large-previews/fdd/man-avatar-1632964.jpg?fmt=webp&h=500',
+                phoneNumber: '987-654-3210',
+                email: 'bob@example.com',
+                about: 'A tech enthusiast.'
+            },
+        ],
+        lastSeen: Date.now(),
+        lastMessage: {
+            id: 1,
+            userId: 2,
+            name: 'Bob',
+            avatar: '',
+            text: 'Hey Alice, how are you?',
+            time: '2:30 PM',
+            updatedAt: Date.now(),
+            readCount: 1
+        },
+    },
+};
 
-interface Message {
-    id: number;
-    userId: number;
-    name: string;
-    avatar: string;
-    text: string;
-    time: string;
-    replyTo?: Message;
-    attachment?: Attachment[];
-    updatedAt: number;
-}
+// const groupChat: Chat = {
+//     id: 2,
+//     createdAt: Date.now(),
+//     type: ChatType.GroupChat,
+//     groupChat: {
+//         type: ChatType.GroupChat,
+//         name: 'Tech Enthusiasts',
+//         profilePicture: 'https://images.freeimages.com/images/large-previews/fdd/man-avatar-1632964.jpg?fmt=webp&h=500',
+//         about: 'A group for tech lovers.',
+//         participantsCount: 150,
+//         lastMessage: {
+//             id: 2,
+//             userId: 1,
+//             name: 'Alice',
+//             avatar: '',
+//             text: 'Welcome to the group! Let’s talk about the latest tech trends.',
+//             time: '5:00 PM',
+//             updatedAt: Date.now(),
+//         },
+//     },
+// };
 
-interface EditAttachment extends Attachment {
-    delete: boolean;
-}
-
-interface EditMessage extends Omit<Message, 'attachment'> {
-    attachment?: EditAttachment[];
-}
-
-interface Chat {
-    name: string;
-    avatarUrl: string;
-    lastSeen: string;
-}
-
-const Chat = () => {
+const ChatRoom = ({chat = privateChat}: { chat?: Chat }) => {
     const current = {
         id: 1,
         name: "Hilmi Raif",
@@ -90,12 +107,6 @@ const Chat = () => {
     const [isGroup] = useState(false);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const [isLoadingMessage] = useState(false);
-
-    const chat: Chat = {
-        name: 'Steven William',
-        avatarUrl: 'https://images.freeimages.com/images/large-previews/fdd/man-avatar-1632964.jpg?fmt=webp&h=500',
-        lastSeen: 'Active 2 mins ago',
-    }
 
     const [messages, setMessages] = useState<Message[]>([
         {
@@ -105,27 +116,24 @@ const Chat = () => {
             avatar: "https://images.freeimages.com/images/large-previews/fdd/man-avatar-1632964.jpg?fmt=webp&h=350",
             text: "Halo! Ini pesan dummy dari user 😁",
             time: "10:06 AM",
-            replyTo: {
-                name: "Steven William",
-                text: "Halo! Ini pesan dummy dari user 😁",
-            },
-            attachment:[{
-                src:"https://images.freeimages.com/images/large-previews/d1f/lady-avatar-1632967.jpg?fmt=webp&h=350",
-                name:"chat.cpp",
-                type:"image/jpg",
-                size:"1024",
-            },{
-                src:"https://images.freeimages.com/images/large-previews/d1f/lady-avatar-1632967.jpg?fmt=webp&h=350",
-                name:"chaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaat.cpp",
-                type:"",
-                size:"1024",
-            },{
-                src:"https://images.freeimages.com/images/large-previews/d1f/lady-avatar-1632967.jpg?fmt=webp&h=350",
-                name:"chat.cpp",
-                type:"",
-                size:"1024",
+            attachment: [{
+                src: "https://images.freeimages.com/images/large-previews/d1f/lady-avatar-1632967.jpg?fmt=webp&h=350",
+                name: "chat.cpp",
+                type: "image/jpg",
+                size: 1024,
+            }, {
+                src: "https://images.freeimages.com/images/large-previews/d1f/lady-avatar-1632967.jpg?fmt=webp&h=350",
+                name: "chaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaat.cpp",
+                type: "",
+                size: 1024,
+            }, {
+                src: "https://images.freeimages.com/images/large-previews/d1f/lady-avatar-1632967.jpg?fmt=webp&h=350",
+                name: "chat.cpp",
+                type: "",
+                size: 1024,
             }],
-            updatedAt: 0
+            updatedAt: 0,
+            readCount: 1
         },
         {
             id: 2,
@@ -135,26 +143,49 @@ const Chat = () => {
             text: "chaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaatchaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaatchaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaat",
             time: "10:06 AM",
             replyTo: {
+                id: 1,
+                userId: 2,
                 name: "Steven William",
+                avatar: "https://images.freeimages.com/images/large-previews/fdd/man-avatar-1632964.jpg?fmt=webp&h=350",
                 text: "Halo! Ini pesan dummy dari user 😁",
+                time: "10:06 AM",
+                attachment: [{
+                    src: "https://images.freeimages.com/images/large-previews/d1f/lady-avatar-1632967.jpg?fmt=webp&h=350",
+                    name: "chat.cpp",
+                    type: "image/jpg",
+                    size: 1024,
+                }, {
+                    src: "https://images.freeimages.com/images/large-previews/d1f/lady-avatar-1632967.jpg?fmt=webp&h=350",
+                    name: "chaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaat.cpp",
+                    type: "",
+                    size: 1024,
+                }, {
+                    src: "https://images.freeimages.com/images/large-previews/d1f/lady-avatar-1632967.jpg?fmt=webp&h=350",
+                    name: "chat.cpp",
+                    type: "",
+                    size: 102,
+                }],
+                updatedAt: 0,
+                readCount: 1
             },
-            attachment:[{
-                src:"https://images.freeimages.com/images/large-previews/d1f/lady-avatar-1632967.jpg?fmt=webp&h=350",
-                name:"chat.cpp",
-                type:"image/jpg",
-                size:"1024",
-            },{
-                src:"https://images.freeimages.com/images/large-previews/d1f/lady-avatar-1632967.jpg?fmt=webp&h=350",
-                name:"chaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaat.cpp",
-                type:"",
-                size:"1024",
-            },{
-                src:"https://images.freeimages.com/images/large-previews/d1f/lady-avatar-1632967.jpg?fmt=webp&h=350",
-                name:"chat.cpp",
-                type:"",
-                size:"1024",
+            attachment: [{
+                src: "https://images.freeimages.com/images/large-previews/d1f/lady-avatar-1632967.jpg?fmt=webp&h=350",
+                name: "chat.cpp",
+                type: "image/jpg",
+                size: 1024,
+            }, {
+                src: "https://images.freeimages.com/images/large-previews/d1f/lady-avatar-1632967.jpg?fmt=webp&h=350",
+                name: "chaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaat.cpp",
+                type: "",
+                size: 1024,
+            }, {
+                src: "https://images.freeimages.com/images/large-previews/d1f/lady-avatar-1632967.jpg?fmt=webp&h=350",
+                name: "chat.cpp",
+                type: "",
+                size: 1024,
             }],
-            updatedAt: 10000
+            updatedAt: 10000,
+            readCount: 0
         },
     ]);
 
@@ -215,154 +246,39 @@ const Chat = () => {
 
     const [files, setFiles] = React.useState<File[]>([]);
 
-    const onFileValidate = React.useCallback(
-        (file: File): string | null => {
-            // if (files.length >= 2) {
-            //     return "You can only upload up to 2 files";
-            // }
-
-            // Validate file type (only images)
-            // if (!file.type.startsWith("image/")) {
-            //     return "Only image files are allowed";
-            // }
-            //
-            // const MAX_SIZE = 2 * 1024 * 1024; // 2MB
-            // if (file.size > MAX_SIZE) {
-            //     return `File size must be less than ${MAX_SIZE / (1024 * 1024)}MB`;
-            // }
-
-            return null;
-        },
-        [files],
-    );
-
-    const onFileReject = React.useCallback((file: File, message: string) => {
-        toast(message, {
-            description: `"${file.name.length > 20 ? `${file.name.slice(0, 20)}...` : file.name}" has been rejected`,
-        });
-    }, []);
-
-    function getFileIconFromData(file: Attachment) {
-        const extension = file.name.split(".").pop()?.toLowerCase() ?? "";
-
-        if (file.type.startsWith("video/")) {
-            return <FileVideoIcon size={28} />;
-        }
-
-        if (file.type.startsWith("audio/")) {
-            return <FileAudioIcon size={28} />;
-        }
-
-        if (
-            file.type.startsWith("text/") ||
-            ["txt", "md", "rtf", "pdf"].includes(extension)
-        ) {
-            return <FileTextIcon size={28} />;
-        }
-
-        if (
-            [
-                "html",
-                "css",
-                "js",
-                "jsx",
-                "ts",
-                "tsx",
-                "json",
-                "xml",
-                "php",
-                "py",
-                "rb",
-                "java",
-                "c",
-                "cpp",
-                "cs",
-            ].includes(extension)
-        ) {
-            return <FileCodeIcon size={28} />;
-        }
-
-        if (["zip", "rar", "7z", "tar", "gz", "bz2"].includes(extension)) {
-            return <FileArchiveIcon />;
-        }
-
-        if (
-            ["exe", "msi", "app", "apk", "deb", "rpm"].includes(extension) ||
-            file.type.startsWith("application/")
-        ) {
-            return <FileCogIcon />;
-        }
-
-        return <FileIcon size={28} />;
-    }
-
-
-    function renderFilePreview(file: Attachment, isSender:boolean=true, isEditMode=false,onClick=()=>{}) {
-        if (!file) return null;
-
-        const isImage = file.type?.startsWith("image/");
-
-        if (isImage && !isEditMode) {
-            return (
-                <img
-                    src={file.src}
-                    alt={file.name}
-                    className="size-full rounded object-cover"
-                />
-            );
-        }
-
-        return (
-            <Card
-                variant={isSender ? "revert" : undefined}
-                className={`gap-[10px] h-fit-fit w-full p-3 rounded-md shadow-none flex justify-between flex-row items-center ${isSender ? '' : 'bg-background border'}`}
-            >
-                <div className="flex items-center justify-start gap-[10px] w-fit">
-                    {isImage ? (
-                        <div className={`size-[40px] flex items-center justify-center rounded-md ${isSender ? 'bg-[#17171a] dark:bg-[#f9f9f9]' : 'dark:bg-[#17171a] bg-[#f9f9f9]'}`}>
-                            <img
-                                src={file.src}
-                                alt={file.name}
-                                className="size-full rounded object-cover"
-                            />
-                        </div>
-                    ):(
-                        <div className={`size-[40px] flex items-center justify-center rounded-md ${isSender ? 'bg-[#17171a] dark:bg-[#f9f9f9]' : 'dark:bg-[#17171a] bg-[#f9f9f9]'}`}>
-                            {getFileIconFromData(file)}
-                        </div>
-                    )
-                    }
-                    <div className={`flex flex-1 flex-col ${isSender ? 'text-background' : 'text-foreground'}`}>
-                        <p className="line-clamp-1 font-medium text-sm">{file.name}</p>
-                        <p className={`text-muted-foreground truncate  text-xs`}>{file.size} KB</p>
-                    </div>
-                </div>
-                <Button
-                    className={`size-7 rounded-md size-[28px] border-none`}
-                    variant={isSender ? "ghostRevert" : "ghost"}
-                    size="icon"
-                    onClick={
-                        onClick
-                    }
-                >
-                    {isEditMode ? (<X className={` ${isSender ? 'text-background' : 'text-foreground'}`} />) :(<Download className={` ${isSender ? 'text-background' : 'text-foreground'}`} />)}
-                </Button>
-
-            </Card>
-        );
-
-    }
-    useEffect(() => {
-        console.log(editMessage);
-    }, [editMessage]);
-
+    // const onFileValidate = React.useCallback(
+    //     (file: File): string | null => {
+    //         // if (files.length >= 2) {
+    //         //     return "You can only upload up to 2 files";
+    //         // }
+    //
+    //         // Validate file type (only images)
+    //         // if (!file.type.startsWith("image/")) {
+    //         //     return "Only image files are allowed";
+    //         // }
+    //         //
+    //         // const MAX_SIZE = 2 * 1024 * 1024; // 2MB
+    //         // if (file.size > MAX_SIZE) {
+    //         //     return `File size must be less than ${MAX_SIZE / (1024 * 1024)}MB`;
+    //         // }
+    //
+    //         return null;
+    //     },
+    //     [files],
+    // );
+    //
+    // const onFileReject = React.useCallback((file: File, message: string) => {
+    //     toast(message, {
+    //         description: `"${file.name.length > 20 ? `${file.name.slice(0, 20)}...` : file.name}" has been rejected`,
+    //     });
+    // }, []);
     return (
         <>
-            <Toaster />
+            <Toaster/>
             <AppSidebar/>
             <SidebarInset className={"break-all overflow-y-visible"}>
                 <div className="h-screen overflow-hidden flex flex-col">
-                    <ChatHeader chat={chat}/>
+                    <ChatHeader chat={privateChat} currentID={current.id}/>
                     <main className="flex flex-col gap-4 flex-1 px-2 overflow-auto">
                         <div className="flex flex-col flex-1 bg-none">
                             <div className="flex-1 p-2 space-y-2 flex justify-end flex-col " id="chat-container">
@@ -370,9 +286,11 @@ const Chat = () => {
                                     const isCurrentUser = message.userId === current.id;
                                     return (
                                         <div key={message.id}
-                                             className={`flex ${isCurrentUser ? "justify-end" : "justify-start"}`}>
-                                            <div ref={(el) => (messageRefs.current[message.id] = el)}
-                                                 className="group flex gap-2 items-end"
+                                             className={` flex ${isCurrentUser ? "justify-end" : "justify-start"}`}>
+                                            <div ref={(el) => {
+                                                messageRefs.current[message.id] = el;
+                                            }}
+                                                 className="group flex gap-2 items-end md:max-w-1/2"
                                                  onClick={() => handleClick(message.id)}>
                                                 {!isCurrentUser && isGroup && (
                                                     <Avatar
@@ -389,14 +307,15 @@ const Chat = () => {
                                                             size={"icon"}
                                                             className={`size-fit p-[6px] bg-foreground border rounded-full hidden group-hover:flex ${activeMessageId === message.id && 'flex'}`}
                                                             onClick={() => {
-                                                                if (editMessage){
+                                                                if (editMessage) {
                                                                     setEditMessage(null);
                                                                     setMessage("")
                                                                     setAttachmentMode(false);
                                                                     if (textareaRef.current) {
                                                                         textareaRef.current.value = "";
                                                                         textareaRef.current.focus();
-                                                                    }}
+                                                                    }
+                                                                }
                                                                 setReplyTo(message);
                                                             }}
                                                         >
@@ -413,10 +332,13 @@ const Chat = () => {
                                                                     setMessage("")
                                                                     const editMessage = {
                                                                         ...message,
-                                                                        attachment: message.attachment?.map(att => ({ ...att, delete: false })) ?? [],
+                                                                        attachment: message.attachment?.map(att => ({
+                                                                            ...att,
+                                                                            delete: false
+                                                                        })) ?? [],
                                                                     };
                                                                     setEditMessage(editMessage);
-                                                                    if (message.attachment && message.attachment?.length !=0) {
+                                                                    if (message.attachment && message.attachment?.length != 0) {
                                                                         setAttachmentMode(true)
                                                                     }
                                                                     setMessage(message.text);
@@ -468,7 +390,10 @@ const Chat = () => {
                                                     {message.attachment &&
                                                         message.attachment.map((item, index) => (
                                                             item && <div key={index}>
-                                                                {renderFilePreview(item,isCurrentUser)}
+                                                                <AttachmentCard file={item} isSender={isCurrentUser}
+                                                                                onClick={function (): void {
+                                                                                    throw new Error("Function not implemented.");
+                                                                                }}/>
                                                             </div>
                                                         ))
                                                     }
@@ -477,9 +402,23 @@ const Chat = () => {
                                                     <div className="flex justify-end w-full items-center gap-1">
                                                         {message.updatedAt != 0 && <Pen className="size-3"/>}
                                                         <p className={`text-xs line  text-right ${isCurrentUser ? "text-background" : "text-primary"}`}>{message.time}</p>
-                                                        {isCurrentUser ? (isLoadingMessage ?
-                                                            <LoaderCircle className="size-4"/> :
-                                                            <CheckCheck className="size-4"/>) : ""}
+                                                        {
+                                                            isLoadingMessage
+                                                                ? <LoaderCircle className="size-4"/>
+                                                                : (
+                                                                    chat.type === ChatType.PrivateChat
+                                                                        ? (message.readCount > 0
+                                                                                ? <CheckCheck className="size-4"/>
+                                                                                : <Check className="size-4"/>
+                                                                        )
+                                                                        : chat.type === ChatType.GroupChat
+                                                                            ? (message.readCount > 0
+                                                                                    ? <CheckCheck className="size-4"/>
+                                                                                    : <Check className="size-4"/>
+                                                                            )
+                                                                            : null
+                                                                )
+                                                        }
                                                     </div>
                                                 </div>
                                                 {!isCurrentUser && (
@@ -490,14 +429,15 @@ const Chat = () => {
                                                             size={"icon"}
                                                             className={`size-fit p-2 bg-background border rounded-full hidden group-hover:flex ${activeMessageId === message.id && 'flex'}`}
                                                             onClick={() => {
-                                                                if (editMessage){
+                                                                if (editMessage) {
                                                                     setEditMessage(null);
                                                                     setMessage("")
                                                                     setAttachmentMode(false);
                                                                     if (textareaRef.current) {
                                                                         textareaRef.current.value = "";
                                                                         textareaRef.current.focus();
-                                                                }}
+                                                                    }
+                                                                }
                                                                 setReplyTo(message);
                                                             }}>
                                                             <Reply className="text-foreground size-4"/>
@@ -529,7 +469,7 @@ const Chat = () => {
                                                     onClick={() => {
                                                         if (replyTo) {
                                                             setReplyTo(null)
-                                                        } else if(editMessage) {
+                                                        } else if (editMessage) {
                                                             setMessage("")
                                                             setEditMessage(null)
                                                             setAttachmentMode(false)
@@ -546,15 +486,11 @@ const Chat = () => {
                                             </div>
                                             <p className="text-sm line-clamp-1">
                                                 {replyTo?.text || editMessage?.text
-                                                    ? (replyTo?.text || editMessage?.text)
+                                                    ? replyTo?.text ?? editMessage?.text
                                                     : (
-                                                        (replyTo?.attachment?.length || editMessage?.attachment?.length)
-                                                            ? (
-                                                                (replyTo?.attachment?.length || editMessage?.attachment?.length) > 1
-                                                                    ? `${replyTo?.attachment?.length || editMessage?.attachment?.length} files`
-                                                                    : 'File'
-                                                            )
-                                                            : ''
+                                                        (replyTo?.attachment?.length ?? 0) + (editMessage?.attachment?.length ?? 0) > 1
+                                                            ? `${(replyTo?.attachment?.length ?? 0) + (editMessage?.attachment?.length ?? 0)} files`
+                                                            : 'File'
                                                     )
                                                 }
                                             </p>
@@ -563,17 +499,17 @@ const Chat = () => {
                                 )}
 
                                 {attachmentMode && <div className="flex justify-between items-center w-full gap-2">
-                                    <FileUpload.Root className={"w-full "}  value={files}
+                                    <FileUpload.Root className={"w-full "} value={files}
                                                      onValueChange={setFiles}
                                         // onFileValidate={onFileValidate}
                                         // onFileReject={onFileReject}
                                         // accept="image/*"
                                         // maxFiles={2}
                                                      multiple>
-                                        <FileUpload.Dropzone >
+                                        <FileUpload.Dropzone>
                                             <div className="flex flex-col items-center gap-1">
                                                 <div className="flex items-center justify-center rounded-full border">
-                                                    <Upload className="size-6 text-muted-foreground" />
+                                                    <Upload className="size-6 text-muted-foreground"/>
                                                 </div>
                                                 <p className="font-medium text-sm">Drag & drop files here</p>
                                                 <p className="text-muted-foreground text-xs">
@@ -582,42 +518,50 @@ const Chat = () => {
                                             </div>
 
                                         </FileUpload.Dropzone>
-                                        <div className={`overflow-auto max-h-[8.7rem] z-[51] gap-[8px] flex-col flex ${(files?.length == 0 ? (editMessage ? (editMessage.attachment?.length == 0 ? "hidden" : (editMessage?.attachment?.some(item => !item.delete) ? "" : "hidden")) : "hidden") : '')}`}>
+                                        <div
+                                            className={`overflow-auto max-h-[8.7rem] z-[51] gap-[8px] flex-col flex ${(files?.length == 0 ? (editMessage ? (editMessage.attachment?.length == 0 ? "hidden" : (editMessage?.attachment?.some(item => !item.delete) ? "" : "hidden")) : "hidden") : '')}`}>
                                             {editMessage && editMessage.attachment && (
                                                 editMessage.attachment.map((item, index) => (
                                                     item && !item.delete && (
                                                         <div key={index}>
-                                                            {renderFilePreview(item, false, true, () => {
-                                                                const updatedAttachments = editMessage.attachment?.map((att, idx) => {
-                                                                    if (idx === index) {
-                                                                        return { ...att, delete: true };
-                                                                    }
-                                                                    return att;
-                                                                }) ?? editMessage?.attachment;
-                                                                setEditMessage({ ...editMessage, attachment: updatedAttachments });
-                                                            })}
+                                                            <AttachmentCard
+                                                                file={item}
+                                                                isSender={false}
+                                                                isEditMode={true}
+                                                                onClick={() => {
+                                                                    const updatedAttachments = editMessage.attachment?.map((att, idx) => {
+                                                                        if (idx === index) {
+                                                                            return {...att, delete: true};
+                                                                        }
+                                                                        return att;
+                                                                    }) ?? editMessage?.attachment;
+
+                                                                    setEditMessage({
+                                                                        ...editMessage,
+                                                                        attachment: updatedAttachments,
+                                                                    });
+                                                                }}
+                                                            />
                                                         </div>
                                                     )
                                                 ))
                                             )}
 
-                                            <FileUploadList >
+                                            <FileUploadList>
                                                 {files.map((file, index) => (
                                                     <FileUploadItem key={index} value={file}>
-                                                        <FileUploadItemPreview />
-                                                        <FileUploadItemMetadata />
+                                                        <FileUploadItemPreview/>
+                                                        <FileUploadItemMetadata/>
 
                                                         <FileUploadItemDelete asChild>
                                                             <Button variant="ghost" size="icon" className="size-7">
-                                                                <X />
+                                                                <X/>
                                                             </Button>
                                                         </FileUploadItemDelete>
                                                     </FileUploadItem>
                                                 ))}
                                             </FileUploadList>
                                         </div>
-
-                                        {/*<FileUpload.Clear />*/}
                                     </FileUpload.Root>
                                 </div>}
                                 <div
@@ -639,7 +583,8 @@ const Chat = () => {
                                                 }
                                             }
                                         }}>
-                                            {attachmentMode ? <Shredder className="size-5"/> : <File className="size-5"/>}
+                                            {attachmentMode ? <Shredder className="size-5"/> :
+                                                <File className="size-5"/>}
                                         </Button>
                                         <Button size="icon" variant="ghost">
                                             <Smile className="size-5"/>
@@ -652,12 +597,27 @@ const Chat = () => {
                                     />
                                     <Button size="icon" variant="ghost" onClick={(e) => {
                                         e.preventDefault();
-                                        if (message.trim() === "") return;
+                                        if (editMessage) {
+                                            if (
+                                                (files.length === 0 &&
+                                                    !editMessage?.attachment?.some(item => item.delete) &&
+                                                    editMessage?.text === message) ||
+                                                (editMessage?.attachment?.every(item => item.delete) &&
+                                                    message.trim() === "" &&
+                                                    files.length === 0)) {
+                                                return;
+                                            }
+                                        } else {
+                                            if (files.length === 0 && message.trim() === "") {
+                                                return;
+                                            }
+                                        }
+
                                         if (editMessage) {
                                             setMessages((prev) =>
                                                 prev.map((msg) =>
                                                     msg.id === editMessage.id
-                                                        ? { ...msg, text: message, updatedAt: Date.now() }
+                                                        ? {...msg, text: message, updatedAt: Date.now()}
                                                         : msg
                                                 )
                                             );
@@ -672,6 +632,7 @@ const Chat = () => {
                                         }
 
                                         const newMessage: Message = {
+                                            readCount: 0,
                                             updatedAt: 0,
                                             id: Math.floor(Math.random() * 1_000_000),
                                             userId: current.id,
@@ -682,7 +643,7 @@ const Chat = () => {
                                                 hour: "2-digit",
                                                 minute: "2-digit",
                                             }),
-                                            ...(replyTo && { replyTo })
+                                            ...(replyTo && {replyTo})
 
                                         };
                                         console.log(newMessage);
@@ -724,4 +685,4 @@ const Chat = () => {
         </>
     )
 }
-export default Chat;
+export default ChatRoom;
