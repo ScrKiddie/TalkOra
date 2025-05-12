@@ -1,4 +1,4 @@
-import {Attachment} from "@/types/messageTypes.tsx";
+import {Attachment} from "@/types/message-types.tsx";
 import {
     Download,
     FileArchiveIcon,
@@ -85,7 +85,15 @@ const AttachmentCard: React.FC<FilePreviewProps> = ({file, isSender = true, isEd
     if (!file) return null;
 
     const isImage = file.type?.startsWith("image/");
-
+    if (isImage && !isEditMode) {
+        return (
+            <img
+                src={file.src}
+                alt={file.name}
+                className="size-full rounded object-cover"
+            />
+        );
+    }
     return (
         <Card
             variant={isSender ? "revert" : "default"}

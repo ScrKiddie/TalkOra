@@ -1,5 +1,5 @@
-import {User} from "@/types/userTypes.tsx";
-import {Message} from "@/types/messageTypes.tsx";
+import {User} from "@/types/user-types.tsx";
+import {Message} from "@/types/message-types.tsx";
 
 export enum ChatType{
     PrivateChat = "private",
@@ -12,6 +12,7 @@ export interface Chat {
     type: ChatType;
     privateChat?: PrivateChat;
     groupChat?: GroupChat;
+    unreadCount: number;
 }
 
 export interface PrivateChat {

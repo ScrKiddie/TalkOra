@@ -1,3 +1,5 @@
+import {User} from "@/types/user-types.tsx";
+
 export interface Attachment {
     src: string;
     name: string;
@@ -7,9 +9,8 @@ export interface Attachment {
 
 export interface Message {
     id: number;
-    userId: number;
-    name: string;
-    avatar: string;
+    chatID: number;
+    user: User;
     text: string;
     time: string;
     replyTo?: Message;
