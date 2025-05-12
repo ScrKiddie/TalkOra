@@ -1,5 +1,4 @@
-import {AppSidebar} from "@/components/app-sidebar.tsx";
-import {SidebarInset} from "@/components/ui/sidebar.tsx";
+import {SidebarInset, SidebarTrigger} from "@/components/ui/sidebar.tsx";
 import {Button} from "@/components/ui/button.tsx";
 import {
     CheckCheck,
@@ -11,7 +10,7 @@ import {
     Trash2,
     Upload,
     Shredder,
-    X, File, Check
+    X, File, Check, SquarePen
 } from "lucide-react";
 import {Avatar, AvatarFallback, AvatarImage} from "@radix-ui/react-avatar";
 import {Textarea} from "@/components/ui/textarea.tsx";
@@ -25,7 +24,6 @@ import {
     DialogHeader,
     DialogTitle
 } from "@/components/ui/dialog.tsx";
-import ChatHeader from "@/components/chat-header.tsx";
 import * as FileUpload from "@/components/ui/file-upload";
 import {
     FileUploadItem, FileUploadItemDelete,
@@ -35,168 +33,172 @@ import {
 } from "@/components/ui/file-upload";
 import * as React from "react";
 import {Toaster} from "sonner";
-import {Chat, ChatType} from "@/types/chatTypes.tsx";
-import {Message, EditMessage} from "@/types/messageTypes.tsx";
+import {Message, EditMessage} from "@/types/message-types.tsx";
 import AttachmentCard from "@/components/attachment-card.tsx";
+import {ModeToggle} from "@/components/mode-toggle.tsx";
+import {User} from "@/types/user-types.tsx";
+import {Chat, ChatType} from "@/types/chat-types.tsx";
 
 const privateChat: Chat = {
-    id: 1,
-    createdAt: Date.now(),
-    type: ChatType.PrivateChat,
-    privateChat: {
+    unreadCount: 0,
+    id: 1, createdAt: Date.now(), type: ChatType.PrivateChat, privateChat: {
         type: ChatType.PrivateChat,
-        participants: [
-            {
-                id: 1,
-                name: 'Alice',
-                profilePicture: 'https://images.freeimages.com/images/large-previews/fdd/man-avatar-1632964.jpg?fmt=webp&h=500',
-                phoneNumber: '123-456-7890',
-                email: 'alice@example.com',
-                about: 'A passionate developer.'
-            },
-            {
-                id: 2,
-                name: 'Bob',
-                profilePicture: 'https://images.freeimages.com/images/large-previews/fdd/man-avatar-1632964.jpg?fmt=webp&h=500',
-                phoneNumber: '987-654-3210',
-                email: 'bob@example.com',
-                about: 'A tech enthusiast.'
-            },
-        ],
-        lastSeen: Date.now(),
+        participants: [{
+            id: 1,
+            name: 'Alice',
+            profilePicture: 'https://images.freeimages.com/images/large-previews/fdd/man-avatar-1632964.jpg?fmt=webp&h=500',
+            phoneNumber: '123-456-7890',
+            email: 'alice@example.com',
+            about: 'A passionate developer.',
+            lastSeen: 0
+        }, {
+            id: 2,
+            name: 'Bob',
+            profilePicture: 'https://images.freeimages.com/images/large-previews/fdd/man-avatar-1632964.jpg?fmt=webp&h=500',
+            phoneNumber: '987-654-3210',
+            email: 'bob@example.com',
+            about: 'A tech enthusiast.',
+            lastSeen: 0
+        }],
         lastMessage: {
             id: 1,
-            userId: 2,
-            name: 'Bob',
-            avatar: '',
+            user: {
+                about: "",
+                email: "",
+                phoneNumber: "",
+                profilePicture: "https://images.freeimages.com/images/large-previews/fdd/man-avatar-1632964.jpg?fmt=webp&h=350",
+                id: 1,
+                name: "You",
+                lastSeen: 0
+            },
             text: 'Hey Alice, how are you?',
             time: '2:30 PM',
-            updatedAt: Date.now(),
-            readCount: 1
-        },
-    },
+            updatedAt: Date.now(), readCount: 1,
+            chatID: 1
+        }
+    }
 };
 
-// const groupChat: Chat = {
-//     id: 2,
-//     createdAt: Date.now(),
-//     type: ChatType.GroupChat,
-//     groupChat: {
-//         type: ChatType.GroupChat,
-//         name: 'Tech Enthusiasts',
-//         profilePicture: 'https://images.freeimages.com/images/large-previews/fdd/man-avatar-1632964.jpg?fmt=webp&h=500',
-//         about: 'A group for tech lovers.',
-//         participantsCount: 150,
-//         lastMessage: {
-//             id: 2,
-//             userId: 1,
-//             name: 'Alice',
-//             avatar: '',
-//             text: 'Welcome to the group! Let’s talk about the latest tech trends.',
-//             time: '5:00 PM',
-//             updatedAt: Date.now(),
-//         },
-//     },
-// };
-
 const ChatRoom = ({chat = privateChat}: { chat?: Chat }) => {
-    const current = {
-        id: 1,
-        name: "Hilmi Raif",
+
+    const current: User = {
+        about: "", email: "", phoneNumber: "", profilePicture: "", id: 1, name: "Hilmi Raif", lastSeen: 0
     }
-    const [isGroup] = useState(false);
+
+
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const [isLoadingMessage] = useState(false);
 
-    const [messages, setMessages] = useState<Message[]>([
-        {
-            id: 1,
-            userId: 2,
+    const [messages, setMessages] = useState<Message[]>([{
+        id: 1,
+        user: {
+            about: "",
+            email: "",
+            phoneNumber: "",
+            profilePicture: "https://images.freeimages.com/images/large-previews/fdd/man-avatar-1632964.jpg?fmt=webp&h=350",
+            id: 2,
             name: "Steven William",
-            avatar: "https://images.freeimages.com/images/large-previews/fdd/man-avatar-1632964.jpg?fmt=webp&h=350",
+            lastSeen: 0
+        },
+        text: "Halo! Ini pesan dummy dari user 😁",
+        time: "10:06 AM",
+        attachment: [{
+            src: "https://images.freeimages.com/images/large-previews/d1f/lady-avatar-1632967.jpg?fmt=webp&h=350",
+            name: "chat.cpp",
+            type: "image/jpg",
+            size: 1024
+        }, {
+            src: "https://images.freeimages.com/images/large-previews/d1f/lady-avatar-1632967.jpg?fmt=webp&h=350",
+            name: "chaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaat.cpp",
+            type: "",
+            size: 1024
+        }, {
+            src: "https://images.freeimages.com/images/large-previews/d1f/lady-avatar-1632967.jpg?fmt=webp&h=350",
+            name: "chat.cpp",
+            type: "",
+            size: 1024
+        }],
+        updatedAt: 0,
+        readCount: 1,
+        chatID: chat.id
+    }, {
+        id: 2,
+        user: {
+            about: "",
+            email: "",
+            phoneNumber: "",
+            profilePicture: "https://images.freeimages.com/images/large-previews/fdd/man-avatar-1632964.jpg?fmt=webp&h=350",
+            id: 1,
+            name: "You",
+            lastSeen: 0
+        },
+        text: "chaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaatchaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaatchaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaat",
+        time: "10:06 AM",
+        replyTo: {
+            id: 1,
+            user: {
+                about: "",
+                email: "",
+                phoneNumber: "",
+                profilePicture: "https://images.freeimages.com/images/large-previews/fdd/man-avatar-1632964.jpg?fmt=webp&h=350",
+                id: 2,
+                name: "Steven William",
+                lastSeen: 0
+            },
             text: "Halo! Ini pesan dummy dari user 😁",
             time: "10:06 AM",
             attachment: [{
                 src: "https://images.freeimages.com/images/large-previews/d1f/lady-avatar-1632967.jpg?fmt=webp&h=350",
                 name: "chat.cpp",
                 type: "image/jpg",
-                size: 1024,
+                size: 1024
             }, {
                 src: "https://images.freeimages.com/images/large-previews/d1f/lady-avatar-1632967.jpg?fmt=webp&h=350",
                 name: "chaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaat.cpp",
                 type: "",
-                size: 1024,
+                size: 1024
             }, {
                 src: "https://images.freeimages.com/images/large-previews/d1f/lady-avatar-1632967.jpg?fmt=webp&h=350",
                 name: "chat.cpp",
                 type: "",
-                size: 1024,
+                size: 1024
             }],
             updatedAt: 0,
-            readCount: 1
+            readCount: 1,
+            chatID: chat.id
         },
-        {
-            id: 2,
-            userId: 1,
-            name: "You",
-            avatar: "https://images.freeimages.com/images/large-previews/d1f/lady-avatar-1632967.jpg?fmt=webp&h=350",
-            text: "chaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaatchaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaatchaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaat",
-            time: "10:06 AM",
-            replyTo: {
-                id: 1,
-                userId: 2,
-                name: "Steven William",
-                avatar: "https://images.freeimages.com/images/large-previews/fdd/man-avatar-1632964.jpg?fmt=webp&h=350",
-                text: "Halo! Ini pesan dummy dari user 😁",
-                time: "10:06 AM",
-                attachment: [{
-                    src: "https://images.freeimages.com/images/large-previews/d1f/lady-avatar-1632967.jpg?fmt=webp&h=350",
-                    name: "chat.cpp",
-                    type: "image/jpg",
-                    size: 1024,
-                }, {
-                    src: "https://images.freeimages.com/images/large-previews/d1f/lady-avatar-1632967.jpg?fmt=webp&h=350",
-                    name: "chaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaat.cpp",
-                    type: "",
-                    size: 1024,
-                }, {
-                    src: "https://images.freeimages.com/images/large-previews/d1f/lady-avatar-1632967.jpg?fmt=webp&h=350",
-                    name: "chat.cpp",
-                    type: "",
-                    size: 102,
-                }],
-                updatedAt: 0,
-                readCount: 1
-            },
-            attachment: [{
-                src: "https://images.freeimages.com/images/large-previews/d1f/lady-avatar-1632967.jpg?fmt=webp&h=350",
-                name: "chat.cpp",
-                type: "image/jpg",
-                size: 1024,
-            }, {
-                src: "https://images.freeimages.com/images/large-previews/d1f/lady-avatar-1632967.jpg?fmt=webp&h=350",
-                name: "chaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaat.cpp",
-                type: "",
-                size: 1024,
-            }, {
-                src: "https://images.freeimages.com/images/large-previews/d1f/lady-avatar-1632967.jpg?fmt=webp&h=350",
-                name: "chat.cpp",
-                type: "",
-                size: 1024,
-            }],
-            updatedAt: 10000,
-            readCount: 0
-        },
-    ]);
+        attachment: [{
+            src: "https://images.freeimages.com/images/large-previews/d1f/lady-avatar-1632967.jpg?fmt=webp&h=350",
+            name: "chat.cpp",
+            type: "image/jpg",
+            size: 1024
+        }, {
+            src: "https://images.freeimages.com/images/large-previews/d1f/lady-avatar-1632967.jpg?fmt=webp&h=350",
+            name: "chaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaat.cpp",
+            type: "",
+            size: 1024
+        }, {
+            src: "https://images.freeimages.com/images/large-previews/d1f/lady-avatar-1632967.jpg?fmt=webp&h=350",
+            name: "chat.cpp",
+            type: "",
+            size: 1024
+        }],
+        updatedAt: 10000,
+        readCount: 0,
+        chatID: chat.id
+    }]);
 
-    const [message, setMessage] = useState("");
+    const [newMessageText, setNewMessageText] = useState("");
+    const [files, setFiles] = React.useState<File[]>([]);
+
+    const [editMessage, setEditMessage] = useState<null | EditMessage>(null);
+
     const [activeMessageId, setActiveMessageId] = useState<number | null>(null);
     const handleClick = (messageId: number) => {
         setActiveMessageId(messageId);
     };
 
     const [replyTo, setReplyTo] = useState<null | Message>(null);
-    const [editMessage, setEditMessage] = useState<null | EditMessage>(null);
 
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [messageToDelete, setMessageToDelete] = useState<number | null>(null);
@@ -221,158 +223,145 @@ const ChatRoom = ({chat = privateChat}: { chat?: Chat }) => {
         };
     }, [activeMessageId, showDeleteModal]);
 
-    const handleDeleteMessage = () => {
-        if (messageToDelete !== null) {
-            if (messageToDelete == editMessage?.id) {
-                setEditMessage(null);
-                setAttachmentMode(false)
-                if (textareaRef.current) {
-                    textareaRef.current.value = "";
-                    textareaRef.current.focus();
-                }
-            }
-            if (messageToDelete == replyTo?.id) {
-                setReplyTo(null);
-                if (textareaRef.current) {
-                    textareaRef.current.value = "";
-                    textareaRef.current.focus();
-                }
-            }
-            setMessages((prev) => prev.filter((msg) => msg.id !== messageToDelete));
-            setShowDeleteModal(false);
-            setMessageToDelete(null);
-        }
-    };
+    const otherParticipant = chat.type === ChatType.PrivateChat
+        ? chat.privateChat?.participants.find(p => p.id !== current.id)
+        : null;
 
-    const [files, setFiles] = React.useState<File[]>([]);
+    const initials = chat.type === ChatType.PrivateChat
+        ? otherParticipant?.name.split(' ').map(part => part.charAt(0).toUpperCase()).join('')
+        : chat.groupChat?.name.split(' ').map(part => part.charAt(0).toUpperCase()).join('');
 
-    // const onFileValidate = React.useCallback(
-    //     (file: File): string | null => {
-    //         // if (files.length >= 2) {
-    //         //     return "You can only upload up to 2 files";
-    //         // }
-    //
-    //         // Validate file type (only images)
-    //         // if (!file.type.startsWith("image/")) {
-    //         //     return "Only image files are allowed";
-    //         // }
-    //         //
-    //         // const MAX_SIZE = 2 * 1024 * 1024; // 2MB
-    //         // if (file.size > MAX_SIZE) {
-    //         //     return `File size must be less than ${MAX_SIZE / (1024 * 1024)}MB`;
-    //         // }
-    //
-    //         return null;
-    //     },
-    //     [files],
-    // );
-    //
-    // const onFileReject = React.useCallback((file: File, message: string) => {
-    //     toast(message, {
-    //         description: `"${file.name.length > 20 ? `${file.name.slice(0, 20)}...` : file.name}" has been rejected`,
-    //     });
-    // }, []);
     return (
         <>
             <Toaster/>
-            <AppSidebar/>
             <SidebarInset className={"break-all overflow-y-visible"}>
                 <div className="h-screen overflow-hidden flex flex-col">
-                    <ChatHeader chat={privateChat} currentID={current.id}/>
+                    <header
+                        className="outline-1 dark:outline-[#212224] outline-[#e4e4e7] z-50 bg-background flex h-[63px] shrink-0 items-center gap-2">
+                        <div className="flex gap-2 px-4 w-full justify-between items-center">
+                            <div className="flex items-center justify-center gap-2">
+                                <SidebarTrigger className={`mr-1`}/>
+                                <Avatar className="shrink-0 size-10 shadow-sm rounded-full overflow-hidden">
+                                    <AvatarImage
+                                        src={chat.type === ChatType.PrivateChat ? otherParticipant?.profilePicture : chat.groupChat?.profilePicture}
+                                        className="object-cover w-full h-full"
+                                    />
+                                    <AvatarFallback className="text-background">
+                                        {initials}
+                                    </AvatarFallback>
+                                </Avatar>
+                                <div className="grid flex-1 text-left text-sm leading-tight">
+                                <span className="truncate font-medium">
+                                  {chat.type === ChatType.PrivateChat ? otherParticipant?.name : chat.groupChat?.name}
+                                </span>
+                                    <span className="truncate text-xs text-muted-foreground">
+                                  {chat.type === ChatType.PrivateChat
+                                      ? `Last seen: ${chat.privateChat?.participants.find(p => p.id === current.id)?.lastSeen || ''}`
+                                      : `Members: ${chat.groupChat?.participantsCount}`}
+                                </span>
+                                </div>
+                            </div>
+                            <ModeToggle/>
+                        </div>
+                    </header>
                     <main className="flex flex-col gap-4 flex-1 px-2 overflow-auto">
                         <div className="flex flex-col flex-1 bg-none">
                             <div className="flex-1 p-2 space-y-2 flex justify-end flex-col " id="chat-container">
                                 {messages.map((message) => {
-                                    const isCurrentUser = message.userId === current.id;
+                                    const isCurrentUser = message.user.id === current.id;
                                     return (
                                         <div key={message.id}
                                              className={` flex ${isCurrentUser ? "justify-end" : "justify-start"}`}>
                                             <div ref={(el) => {
                                                 messageRefs.current[message.id] = el;
                                             }}
-                                                 className="group flex gap-2 items-end md:max-w-1/2"
+                                                 className="group flex gap-[13px] items-end md:max-w-1/2 "
                                                  onClick={() => handleClick(message.id)}>
-                                                {!isCurrentUser && isGroup && (
+                                                {!isCurrentUser && chat.type === ChatType.GroupChat && (
                                                     <Avatar
                                                         className="shrink-0 w-10 h-10 rounded-full bg-primary flex justify-center items-center overflow-hidden self-end">
-                                                        <AvatarImage src={message.avatar}
+                                                        <AvatarImage src={message.user.profilePicture}
                                                                      className="object-cover w-full h-full"/>
                                                         <AvatarFallback className="text-background">HI</AvatarFallback>
                                                     </Avatar>
                                                 )}
                                                 {isCurrentUser && (
                                                     <div
-                                                        className="self-stretch shrink-0 size-14 flex h-full items-center justify-center group">
-                                                        <Button
-                                                            size={"icon"}
-                                                            className={`size-fit p-[6px] bg-foreground border rounded-full hidden group-hover:flex ${activeMessageId === message.id && 'flex'}`}
-                                                            onClick={() => {
-                                                                if (editMessage) {
-                                                                    setEditMessage(null);
-                                                                    setMessage("")
-                                                                    setAttachmentMode(false);
-                                                                    if (textareaRef.current) {
-                                                                        textareaRef.current.value = "";
-                                                                        textareaRef.current.focus();
-                                                                    }
-                                                                }
-                                                                setReplyTo(message);
-                                                            }}
-                                                        >
-                                                            <Reply className="text-background size-4"/>
-                                                        </Button>
-                                                        <div className="group flex flex-col gap-1 pr-1 items-center ">
+                                                        className="self-stretch shrink-0 size-12 flex h-full items-center justify-center ">
+                                                        <div
+                                                            className="flex items-center justify-center group min-h-[63.200px]">
                                                             <Button
                                                                 size={"icon"}
                                                                 className={`size-fit p-[6px] bg-foreground border rounded-full hidden group-hover:flex ${activeMessageId === message.id && 'flex'}`}
                                                                 onClick={() => {
-                                                                    setFiles([])
-                                                                    setAttachmentMode(false)
-                                                                    setReplyTo(null);
-                                                                    setMessage("")
-                                                                    const editMessage = {
-                                                                        ...message,
-                                                                        attachment: message.attachment?.map(att => ({
-                                                                            ...att,
-                                                                            delete: false
-                                                                        })) ?? [],
-                                                                    };
-                                                                    setEditMessage(editMessage);
-                                                                    if (message.attachment && message.attachment?.length != 0) {
-                                                                        setAttachmentMode(true)
+                                                                    if (editMessage) {
+                                                                        setEditMessage(null);
+                                                                        setNewMessageText("")
+                                                                        setAttachmentMode(false);
+                                                                        if (textareaRef.current) {
+                                                                            textareaRef.current.value = "";
+                                                                            textareaRef.current.focus();
+                                                                        }
                                                                     }
-                                                                    setMessage(message.text);
-                                                                    if (textareaRef.current) {
-                                                                        textareaRef.current.value = message.text;
-                                                                        textareaRef.current.focus();
-                                                                    }
+                                                                    setReplyTo(message);
                                                                 }}
                                                             >
-                                                                <Pen className="text-background size-4"/>
+                                                                <Reply className="text-background size-4"/>
                                                             </Button>
-                                                            <Button
-                                                                size={"icon"}
-                                                                className={`size-fit p-[6px] bg-foreground border rounded-full hidden group-hover:flex ${activeMessageId === message.id && 'flex'}`}
-                                                                onClick={() => {
-                                                                    setMessageToDelete(message.id);
-                                                                    setShowDeleteModal(true);
-                                                                }}
-                                                            >
-                                                                <Trash2 className="text-background size-4"/>
-                                                            </Button>
+                                                            <div
+                                                                className="group flex flex-col gap-1 pr-1 items-center ">
+                                                                <Button
+                                                                    size={"icon"}
+                                                                    className={`size-fit p-[6px] bg-foreground border rounded-full flex hidden group-hover:flex ${activeMessageId === message.id && 'flex'}`}
+                                                                    onClick={() => {
+                                                                        setFiles([])
+                                                                        setAttachmentMode(false)
+                                                                        setReplyTo(null);
+                                                                        setNewMessageText("")
+                                                                        const editMessage = {
+                                                                            ...message,
+                                                                            attachment: message.attachment?.map(att => ({
+                                                                                ...att,
+                                                                                delete: false
+                                                                            })) ?? [],
+                                                                        };
+                                                                        setEditMessage(editMessage);
+                                                                        if (message.attachment && message.attachment?.length != 0) {
+                                                                            setAttachmentMode(true)
+                                                                        }
+                                                                        setNewMessageText(message.text);
+                                                                        if (textareaRef.current) {
+                                                                            textareaRef.current.value = message.text;
+                                                                            textareaRef.current.focus();
+                                                                        }
+                                                                    }}
+                                                                >
+                                                                    <SquarePen className="text-background size-4"/>
+                                                                </Button>
+                                                                <Button
+                                                                    size={"icon"}
+                                                                    className={`size-fit p-[6px] bg-foreground border rounded-full flex hidden group-hover:flex ${activeMessageId === message.id && 'flex'}`}
+                                                                    onClick={() => {
+                                                                        setMessageToDelete(message.id);
+                                                                        setShowDeleteModal(true);
+                                                                    }}
+                                                                >
+                                                                    <Trash2 className="text-background size-4"/>
+                                                                </Button>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 )}
                                                 <div
                                                     className={`p-[10px] rounded-md border flex flex-col gap-2 ${isCurrentUser ? "bg-foreground text-background" : "bg-background  text-foreground"}`}>
-                                                    {!isCurrentUser && isGroup &&
-                                                        <p className="text-sm font-[500] line-clamp-1">{message.name}</p>}
+                                                    {!isCurrentUser && chat.type === ChatType.GroupChat &&
+                                                        <p className="text-sm font-[500] line-clamp-1">{message.user.name}</p>}
                                                     {message.replyTo &&
                                                         <Card variant={isCurrentUser ? "revert" : "default"}
                                                               className={`w-full flex-1 rounded-md gap-1 p-2 shadow-none border-l-6 `}>
                                                             <div
                                                                 className={"flex justify-between items-center w-full gap-2"}>
-                                                                <p className="text-sm font-[500] line-clamp-1">{message.replyTo.name}</p>
+                                                                <p className="text-sm font-[500] line-clamp-1">{message.replyTo.user.name}</p>
                                                             </div>
                                                             <p className="text-sm line-clamp-1">
                                                                 {message.replyTo?.text
@@ -423,15 +412,15 @@ const ChatRoom = ({chat = privateChat}: { chat?: Chat }) => {
                                                 </div>
                                                 {!isCurrentUser && (
                                                     <div
-                                                        className="self-stretch shrink-0 size-10 flex h-full items-center justify-center">
+                                                        className="self-stretch shrink-0 size-12 flex h-full items-center justify-center ">
                                                         <Button
                                                             variant={"ghost"}
                                                             size={"icon"}
-                                                            className={`size-fit p-2 bg-background border rounded-full hidden group-hover:flex ${activeMessageId === message.id && 'flex'}`}
+                                                            className={`size-fit p-2 bg-background border rounded-full flex hidden group-hover:flex ${activeMessageId === message.id && 'flex'}`}
                                                             onClick={() => {
                                                                 if (editMessage) {
                                                                     setEditMessage(null);
-                                                                    setMessage("")
+                                                                    setNewMessageText("")
                                                                     setAttachmentMode(false);
                                                                     if (textareaRef.current) {
                                                                         textareaRef.current.value = "";
@@ -451,8 +440,6 @@ const ChatRoom = ({chat = privateChat}: { chat?: Chat }) => {
                             </div>
                         </div>
                     </main>
-
-
                     <footer className=" mx-auto px-2 pb-2 min-h-[63px] gap-2 w-full flex flex-col items-start ">
                         <div
                             className="flex items-center  outline-1 dark:outline-[#212224] outline-[#e4e4e7] z-50 rounded-md gap-2 p-2 h-full bg-background w-full ">
@@ -461,7 +448,7 @@ const ChatRoom = ({chat = privateChat}: { chat?: Chat }) => {
                                     <div className="flex justify-between items-center w-full gap-2">
                                         <Card className="w-full flex-1 rounded-md gap-1 p-2 shadow-none bg-background ">
                                             <div className="flex justify-between items-center w-full gap-2">
-                                                <p className="text-sm font-[500] line-clamp-1">{replyTo ? `Reply to ${replyTo.name}` : 'Edit Message'}</p>
+                                                <p className="text-sm font-[500] line-clamp-1">{replyTo ? `Reply to ${replyTo.user.name}` : 'Edit Message'}</p>
                                                 <Button
                                                     size="icon"
                                                     variant="ghost"
@@ -470,7 +457,7 @@ const ChatRoom = ({chat = privateChat}: { chat?: Chat }) => {
                                                         if (replyTo) {
                                                             setReplyTo(null)
                                                         } else if (editMessage) {
-                                                            setMessage("")
+                                                            setNewMessageText("")
                                                             setEditMessage(null)
                                                             setAttachmentMode(false)
                                                             setFiles([])
@@ -501,10 +488,6 @@ const ChatRoom = ({chat = privateChat}: { chat?: Chat }) => {
                                 {attachmentMode && <div className="flex justify-between items-center w-full gap-2">
                                     <FileUpload.Root className={"w-full "} value={files}
                                                      onValueChange={setFiles}
-                                        // onFileValidate={onFileValidate}
-                                        // onFileReject={onFileReject}
-                                        // accept="image/*"
-                                        // maxFiles={2}
                                                      multiple>
                                         <FileUpload.Dropzone>
                                             <div className="flex flex-col items-center gap-1">
@@ -593,7 +576,7 @@ const ChatRoom = ({chat = privateChat}: { chat?: Chat }) => {
                                     <Textarea
                                         className="resize-none rounded-md flex-1 max-h-18 min-h-8 break-all"
                                         ref={textareaRef}
-                                        onChange={(e) => setMessage(e.target.value)}
+                                        onChange={(e) => setNewMessageText(e.target.value)}
                                     />
                                     <Button size="icon" variant="ghost" onClick={(e) => {
                                         e.preventDefault();
@@ -601,14 +584,14 @@ const ChatRoom = ({chat = privateChat}: { chat?: Chat }) => {
                                             if (
                                                 (files.length === 0 &&
                                                     !editMessage?.attachment?.some(item => item.delete) &&
-                                                    editMessage?.text === message) ||
+                                                    editMessage?.text === newMessageText) ||
                                                 (editMessage?.attachment?.every(item => item.delete) &&
-                                                    message.trim() === "" &&
+                                                    newMessageText.trim() === "" &&
                                                     files.length === 0)) {
                                                 return;
                                             }
                                         } else {
-                                            if (files.length === 0 && message.trim() === "") {
+                                            if (files.length === 0 && newMessageText.trim() === "") {
                                                 return;
                                             }
                                         }
@@ -617,12 +600,12 @@ const ChatRoom = ({chat = privateChat}: { chat?: Chat }) => {
                                             setMessages((prev) =>
                                                 prev.map((msg) =>
                                                     msg.id === editMessage.id
-                                                        ? {...msg, text: message, updatedAt: Date.now()}
+                                                        ? {...msg, text: newMessageText, updatedAt: Date.now()}
                                                         : msg
                                                 )
                                             );
                                             setEditMessage(null);
-                                            setMessage("");
+                                            setNewMessageText("");
                                             if (textareaRef.current) {
                                                 textareaRef.current.value = "";
                                                 textareaRef.current.focus();
@@ -635,10 +618,9 @@ const ChatRoom = ({chat = privateChat}: { chat?: Chat }) => {
                                             readCount: 0,
                                             updatedAt: 0,
                                             id: Math.floor(Math.random() * 1_000_000),
-                                            userId: current.id,
-                                            name: current.name,
-                                            avatar: "https://images.freeimages.com/images/large-previews/d1f/lady-avatar-1632967.jpg?fmt=webp&h=350",
-                                            text: message,
+                                            user: current,
+                                            chatID: chat.id,
+                                            text: newMessageText,
                                             time: new Date().toLocaleTimeString([], {
                                                 hour: "2-digit",
                                                 minute: "2-digit",
@@ -648,7 +630,7 @@ const ChatRoom = ({chat = privateChat}: { chat?: Chat }) => {
                                         };
                                         console.log(newMessage);
                                         setMessages((prev) => [...prev, newMessage]);
-                                        setMessage("");
+                                        setNewMessageText("");
                                         setReplyTo(null);
                                         if (textareaRef.current) {
                                             textareaRef.current.value = "";
@@ -674,7 +656,28 @@ const ChatRoom = ({chat = privateChat}: { chat?: Chat }) => {
                                 <Button variant={"outline"} onClick={() => setShowDeleteModal(false)}>
                                     Cancel
                                 </Button>
-                                <Button onClick={handleDeleteMessage}>
+                                <Button onClick={() => {
+                                    if (messageToDelete !== null) {
+                                        if (messageToDelete == editMessage?.id) {
+                                            setEditMessage(null);
+                                            setAttachmentMode(false)
+                                            if (textareaRef.current) {
+                                                textareaRef.current.value = "";
+                                                textareaRef.current.focus();
+                                            }
+                                        }
+                                        if (messageToDelete == replyTo?.id) {
+                                            setReplyTo(null);
+                                            if (textareaRef.current) {
+                                                textareaRef.current.value = "";
+                                                textareaRef.current.focus();
+                                            }
+                                        }
+                                        setMessages((prev) => prev.filter((msg) => msg.id !== messageToDelete));
+                                        setShowDeleteModal(false);
+                                        setMessageToDelete(null);
+                                    }
+                                }}>
                                     Delete
                                 </Button>
                             </DialogFooter>
